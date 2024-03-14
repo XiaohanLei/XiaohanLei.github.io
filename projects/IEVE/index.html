@@ -70,30 +70,29 @@
           <h1 class="title is-1 publication-title">Instance-aware Exploration-Verification-Exploitation for Instance ImageGoal Navigation</h1>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
-              <a href="https://djiajunustc.github.io">Xiaohan Lei</a><sup>1</sup>,</span>
+              <a href="https://xiaohanlei.github.io/">Xiaohan Lei</a><sup>1</sup>,</span>
             <span class="author-block">
-              <a href="https://github.com/zhangsha1024">Min Wang</a><sup>2,3</sup>,</span>
+              <a href="https://scholar.google.com/citations?user=FFDionEAAAAJ&hl=zh-CN">Min Wang</a><sup>2</sup>,</span>
             <span class="author-block">
-                <a href="https://ferasdayoub.com">Wengang Zhou</a><sup>1</sup>,</span>
+                <a href="http://staff.ustc.edu.cn/~zhwg/index_highlight_publications.html">Wengang Zhou</a><sup>1,2</sup>,</span>
             <span class="author-block">
-              <a href="https://wlouyang.github.io">Li Li</a><sup>3</sup>,
+              <a href="http://staff.ustc.edu.cn/~lilimao/">Li Li</a><sup>1</sup>,
             <!-- </span> -->
             <span class="author-block">
-              <a href="http://staff.ustc.edu.cn/~yanyongz">Houqiang Li</a><sup>2</sup>
+              <a href="http://staff.ustc.edu.cn/~lihq/">Houqiang Li</a><sup>1,2</sup>
             <!-- </span> -->
           </div>
 
           <div class="is-size-5 publication-authors">
-            <span class="author-block"><sup>2</sup>University of Science and Technology of China</span>
-            <span class="author-block"><sup>3</sup>Shanghai AI Laboratory</span>
-            <span class="author-block"><sup>4</sup>Mohammad Bin Zayed University of Artificial Intelligence</span>
+            <span class="author-block"><sup>1</sup>University of Science and Technology of China</span>
+            <span class="author-block"><sup>2</sup>Institute of Artificial Intelligence, Hefei Comprehensive National Science Center</span>
           </div>
 
           <div class="column has-text-centered">
             <div class="publication-links">
               <!-- PDF Link. -->
               <span class="link-block">
-                <a href="https://link.springer.com/article/10.1007/s11263-023-01981-w"
+                <a href="IEVE.pdf"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fas fa-file-pdf"></i>
@@ -122,7 +121,7 @@
               </span> -->
               <!-- Code Link. -->
               <span class="link-block">
-                <a href="https://djiajunustc.github.io/"
+                <a href="https://github.com/XiaohanLei/IEVE"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fab fa-github"></i>
@@ -147,11 +146,12 @@
     </div>
   </div>
 </section>
-<!-- 
+
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
-      <img src="static/images/poifusion_framework.png" alt="PoIFusion">
+      <img src="static/images/main.png" alt="IEVE">
+      <img src="static/images/switch.png" alt="Switch">
       <!-- <h2 class="subtitle has-text-centered">
         <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
         free-viewpoint
@@ -159,7 +159,7 @@
       </h2> -->
     <!-- </div>
   </div>
-</section> --> -->
+</section> -->
 
 <section class="section">
   <div class="container is-max-desktop">
@@ -169,7 +169,15 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            In this work, we present PoIFusion, a simple yet effective multi-modal 3D object detection framework to fuse the information of RGB images and LiDAR point clouds at the point of interest (abbreviated as PoI). Technically, our PoIFusion follows the paradigm of query-based object detection, formulating object queries as dynamic 3D boxes. The PoIs are adaptively generated from each query box on the fly, serving as the keypoints to represent a 3D object and play the role of basic units in multi-modal fusion. Specifically, we project PoIs into the view of each modality to sample the corresponding feature and integrate the multi-modal features at each PoI through a dynamic fusion block. Furthermore, the features of PoIs derived from the same query box are aggregated together to update the query feature. Our approach prevents information loss caused by view transformation and eliminates the computation-intensive global attention, making the multi-modal 3D object detector more applicable. We conducted extensive experiments on the nuScenes dataset to evaluate our approach. Remarkably, our PoIFusion achieves 74.9% NDS and 73.4% mAP, setting a state-of-the-art record on the multi-modal 3D object detection benchmark.
+            As a new embodied vision task, Instance ImageGoal
+Navigation (IIN) aims to navigate to a specified object
+depicted by a goal image in an unexplored environment.
+The main challenge of this task lies in identifying the target object from different viewpoints while rejecting similar distractors. Existing ImageGoal Navigation methods
+usually adopt the simple Exploration-Exploitation framework and ignore the identification of specific instance during navigation. In this work, we propose to imitate the human behaviour of “getting closer to confirm” when distinguishing objects from a distance. Specifically, we design a
+new modular navigation framework named Instance-aware
+Exploration-Verification-Exploitation (IEVE) for instancelevel image goal navigation. Our method allows for active switching among the exploration, verification, and exploitation actions, thereby facilitating the agent in making reasonable decisions under different situations. On
+the challenging HabitatMatterport 3D semantic (HM3DSEM) dataset, our method surpasses previous state-of-theart work, with a classical segmentation model (0.684 vs.
+0.561 success) or a robust model (0.702 vs. 0.561 success)
           </p>
         </div>
       </div>
@@ -189,24 +197,38 @@
     </div> -->
 
     <!-- Demo. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Performance on nuScenes dataset</h2>
-        <video controls autoplay muted style="width: 100%; height: auto;">
-          <source src="videos/video1.mp4" type="video/mp4">
-          <source src="videos/video1.webm" type="video/webm">
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </div>
+    <video src="videos/FFOutput/video1.mp4" controls autoplay muted style="width: 100%; height: auto;"></video>
+    <video src="videos/FFOutput/video2.mp4" controls  muted style="width: 100%; height: auto;"></video>
+    <video src="videos/FFOutput/video3.mp4" controls  muted style="width: 100%; height: auto;"></video>
+
+    <!-- <script>
+      const video = document.getElementById("myVideo");
+  
+      video.addEventListener("loadedmetadata", videoLoaded);
+      video.addEventListener("error", videoError);
+  
+      function videoLoaded() {
+        // 视频加载成功
+        // 执行播放操作
+        video.play();
+      }
+  
+      function videoError() {
+        // 视频加载失败
+        // 显示错误信息
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent = "视频加载失败，请刷新页面重试。";
+        document.body.appendChild(errorMessage);
+      }
+    </script> -->
 
     <!-- Demo. -->
-    <div class="columns is-centered has-text-centered">
+    <!-- <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Performance on nuScenes dataset</h2>
         <img src="static/images/performance.png" alt="Performance on nuScenes">
       </div>
-    </div>
+    </div> -->
 
     <!--/ Demo. -->
   </div>
