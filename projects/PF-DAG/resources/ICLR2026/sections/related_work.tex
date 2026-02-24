@@ -1,0 +1,36 @@
+
+\section{Related Work}
+
+\vspace{-2pt}
+\subsection{Behavior Cloning}
+\vspace{-2pt}
+
+Behavior cloning (BC) casts policy learning as supervised regression on demonstration data~\citep{wang2017robust, Torabi_2018, mandlekar2021matters, hu2024adaflow}. In BC, a policy is trained to predict the expert’s action for each observed state, yielding a deterministic mapping from states to actions. This approach is highly sample-efficient in practice (\textit{e.g.} for pick-and-place tasks), but it suffers from well-known limitations. In particular, BC policies tend to underfit multi-modal behavior~\citep{mandlekar2021matters, shafiullah2022behavior, florence2022implicit, chi2023diffusion} and also incur compounding errors at test time~\citep{ross2011reduction, ke2021grasping, tu2022sample, zhao2023learning}. To mitigate these issues, recent work has explored more expressive BC models. Implicit BC and energy-based models learn an action-energy landscape per state and solve for actions by optimization~\citep{florence2022implicit}, while mixture-density networks and latent-variable BC attempt to represent multi-modal distributions explicitly~\citep{jang2022bc}.
+
+\vspace{-2pt}
+\subsection{Discrete Policy}
+\vspace{-2pt}
+
+Discretizing continuous robot actions is viewed as tokenization: converting a high-frequency, high-dimensional control signal into a sequence of discrete symbols so that standard sequence-modeling methods can be applied. Framing actions as tokens has two immediate benefits for manipulation imitation. First, next-token prediction over a discrete vocabulary represents multi-modal conditional action distributions without collapsing modes into a single mean. Second, sequence models bring powerful context modeling and scalable pretraining recipes from language and vision to control, enabling cross-task and cross-embodiment generalization when token vocabularies are shared or aligned. Recent Vision-Language-Action (VLA) efforts articulate this reframing and its practical advantages for large, generalist robot policies~\citep{zitkovich2023rt, o2024open, kim2024openvla, zawalski2024robotic, wen2025tinyvla, black2410pi0, zheng2024tracevla, zhen20243d, cheang2024gr, duan2024aha, zhao2025vlas}.
+
+Existing action tokenizers fall into a few broad families. The simplest and most commonly used approach maps each continuous action dimension at each step to one of a fixed set of bins~\citep{brohan2022rt, zitkovich2023rt, kim2024openvla}. Frequency-space methods like FAST~\citep{pertsch2025fast} departs from it and instead compresses action chunks using a time-series transform and lightweight quantization. Others use Vector Quantization (VQ) as latent tokenizers. VQ-based tokenizers learn a shared codebook of action atoms and quantize continuous latent representations to nearest codebook entries~\citep{lee2024behavior, wang2025vq}. 
+While effective at capturing multi-modal action distributions, these approaches inherently trade off reconstruction fidelity for discrete simplicity. Our work differs by leveraging tokenization solely for high-level primary mode selection.
+
+\vspace{-2pt}
+\subsection{Generative Policy}
+\vspace{-2pt}
+
+A large class of imitation methods treat policy generation as a stochastic generative problem by introducing latent variables. In this view, a policy is written as 
+\(a=\pi(o,z)\) with \(z\) sampled from a learned prior. This formulation naturally represents multi-modal conditional action distributions because sampling different \(z\) values yields different valid actions for the same observation. Action Chunking with Transformers (ACT)~\citep{zhao2023learning} is a sequence generator with Conditional Variational Autoencoder (CVAE) as backend. Diffusion Policy (DP)~\citep{chi2023diffusion} treat action generation as conditional denoising. Starting from noise, the action is iteratively refined via a learned score or denoiser conditioned on observation. More recent normalizing-flow policies~\citep{black2410pi0, hu2024adaflow, zhang2025flowpolicy} provide tractable density estimation and efficient sampling while representing complex, multi-modal action distributions. Although generative policies represent multi-modal distributions, they often face mode bouncing~\citep{chen2025responsive}, inference cost~\citep{li2024learning}, chunk trade-offs~\citep{zhao2023learning}. 
+Other hierarchical approaches, such as Hierarchical Diffusion Policy (HDP)~\citep{ma2024hierarchical}, also use a high-level policy to guide a low-level generator. However, HDP is designed to rely on explicit, task-specific heuristics like contact-point waypoints to define its hierarchy. In contrast, our PF-DAG learns its primary modes end-to-end directly from action-chunk clusters themselves, offering a more general abstraction not tied to predefined heuristics.
+Thus, we propose to combine the strengths of action tokenization with expressive generative decoders that handle the residual continuous variations. Our \mymethod{} decouples the primary discrete mode selection from the fine-grained action generation and reduces mode bouncing while preserving continuous variations.
+
+
+
+
+\subsection{Hierarchical and Residual Policies}
+Our work is also situated within the broader context of hierarchical and residual policies for robot learning \citep{rana2023residual, cui2025hierarchical, kujanpaa2023hierarchical, liang2024skilldiffuser}. These approaches commonly decompose the complex control problem into a high-level policy that selects a skill, sub-goal, or context, and a low-level policy that executes control conditioned on the high-level selection \citep{mete2024quest, feng2024play}. For instance, some methods learn residual policies that adapt a base controller \citep{rana2023residual}, while others focus on discovering discrete skills from demonstration data or language guidance \citep{chen2023playfusion, wan2024lotus, tanneberg2021skid}.
+While PF-DAG shares this general hierarchical structure, its primary motivation and technical design are distinct. Many hierarchical methods focus on long-horizon planning or unsupervised skill discovery. In contrast, PF-DAG is specifically designed to address the problem of \textbf{mode bouncing} inherent in single-stage generative policies when modeling multi-modal action distributions at a fine temporal scale.
+
+
+% Our core contribution is the explicit primary-fine decoupling, where we first learn a small set of discrete primary modes directly from action chunks via VQ-VAE, and then use a lightweight policy $\pi_1$ for stable mode selection. This stable discrete choice conditions the MeanFlow generator $\pi_2$, which handles only the fine-grained, continuous \textit{intra-mode} variations. This specific two-stage design, which trades a mode-collapse objective for a mode-classification objective (as analyzed in Appendix \ref{app:mse_analysis}), is tailored to achieve both multi-modal representation and temporal stability.}

@@ -1,0 +1,99 @@
+
+\section{\mymethod{} Formulation and Design}
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=0.99\linewidth]{pics/methodv1.drawio.pdf}
+  % \includesvg[width=0.99\linewidth]{pic/method.drawio.svg}
+  \vspace{-8pt}
+  \caption{Overview of our \mymethod{} framework. The input observation features are extracted via Observation Feature Extraction and then fed to the Primary Mode Policy \(\pi_1\). The GT action chunks are compressed into discrete primary modes using VQ-VAE and supervise \(\pi_1\), which are only used in training stage.  The Mode Conditioned MeanFlow Policy \(\pi_2\) takes the selected primary mode \(m\) and observation features as input, generating high-fidelity continuous actions. 
+  }
+  \vspace{-16pt}
+  \label{fig:method}
+\end{figure*}
+
+This section first defines the task formulation as a closed-loop action-sequence prediction problem, and then presents the three main components of our approach: i) Observation Feature Extraction, ii) a compact discrete representation learned with a Vector-Quantized VAE (VQ-VAE)~\citep{van2017neural} and a lightweight Primary Mode Policy that predicts those discrete modes, and iii) a mode conditioned one-step continuous decoder based on MeanFlow~\citep{geng2025mean}. Finally, we give a theoretical analysis that quantifies why a two-stage, coarse-to-fine decomposition reduces the MSE lower bound compared to single-stage generative models.
+
+\vspace{-2pt}
+\subsection{Closed-loop Action Sequence Prediction}
+\vspace{-2pt}
+
+Similar to previous work~\citep{chi2023diffusion, black2410pi0}, we formulate the manipulation task as closed-loop action sequence prediction. Concretely, at time $t$, the observation is \(\mathbf{o}_t = (\mathbf{p}_t, \mathbf{s}_t, \mathbf{f}_t)\), where \(\mathbf{p}_t\) denotes a fixed-size point cloud, $\mathbf{s}_t\in\mathbb{R}^{d_s}$ denotes robot proprioception, \(\mathbf{f}_t\in\mathbb{R}^{5\times120\times3}\) represents tactile sensing data from the hand’s 5 fingertips. For the dimension of \(\mathbf{f}_t\), the first dimension 5 corresponds to the 5 individual fingertips, the 120 denotes the number of tactile taxels embedded in each fingertip and the last 3 represents the 3-dimensional force vector.
+The policy predicts an action chunk \(\mathbf{a}_t \in \mathbb{R}^{T_p\times d_a}\) and executes the first $T_a\le T_p$ steps before re-planning.
+\begin{equation}
+\hat{\mathbf{a}}_t \sim \pi(\mathbf{o}_t),
+\qquad
+\text{execute } \hat{\mathbf{a}}_t[0:T_a-1],\text{ then } t\leftarrow t+T_a.
+\end{equation}
+This yields a receding-horizon closed-loop control scheme that preserves temporal coherence and allows fast reaction to new observations. Hyperparameters are presented in Appendix.
+
+\vspace{-2pt}
+\subsection{Observation Feature Extraction}
+\vspace{-2pt}
+
+We first extract the shared observation embedding from input observation $\mathbf{o}_t=(\mathbf{p}_t,\mathbf{s}_t, \mathbf{f}_t)$. Following a simple PointNet-style~\citep{qi2017pointnet} pipeline, each point’s coordinates are lifted by an MLP, and LayerNorm~\citep{ba2016layer} is applied inside that per-point MLP. Per-point features are aggregated by a symmetric max-pooling. The proprioception \(\mathbf{s}_t\) and tactile sensing \(\mathbf{f}_t\) are passed through respective MLPs and then concatenated with the point-cloud embedding. A final projection MLP fuses the concatenated vector into the shared observation embedding.
+
+\vspace{-2pt}
+\subsection{Primary Mode Policy and VQ-VAE}
+\vspace{-2pt}
+
+Given the shared observation embedding, the framework first selects a primary mode. This subsection describes how we learn a compact VQ-VAE codebook for action chunks and train a lightweight classifier to predict these primary modes from the observation embedding.
+
+\textbf{Vector Quantized Variational Autoencoder. }  Continuous action chunks \(\mathbf{a}\) are compressed into a small discrete set of primary modes $m\in\{1,\dots,K\}$ using VQ-VAE. Let the deterministic encoder be $E_\phi: \mathbb{R}^{T_p\times d_a}\to\mathbb{R}^D$ and decoder $D_\psi:\mathbb{R}^D\to\mathbb{R}^{T_p\times d_a}$. Let the codebook be $\mathbf{C}=\{\mathbf{e}_k\in\mathbb{R}^D\}_{k=1}^K$ with codebook size $K$. We choose $K$ to be small to capture coarse primary action prototypes and make primary policy easy to learn. Given an action chunk \(\mathbf{a}\), the encoder produces $\mathbf{z}_e=E_\phi(\mathbf{a})$ and we quantize it to the nearest codebook vector:
+\begin{equation}
+    k^* = {\textstyle\mathrm{arg}\,\min_{k}}\|\mathbf{z}_e-\mathbf{e}_k\|_2,\qquad
+    \tilde{\mathbf{z}} = \mathbf{e}_{k^*},\qquad m:=k^*.
+\end{equation}
+We define \(m\) as the primary mode. Reconstruction is $\hat{\mathbf{a}}^{(m)} = D_\psi(\tilde{\mathbf{z}})$. We train the VQ-VAE with the standard commitment and reconstruction terms:
+\begin{equation}
+    \mathcal{L}_{\text{VQ}}(\mathbf{a}) \;=\; \|\mathbf{a} - D_\psi(\tilde{\mathbf{z}})\|_2^2
+    \;+\; \| \text{sg}[E_\phi(\mathbf{a})] - \tilde{\mathbf{z}}\|_2^2
+    \;+\; \beta\|E_\phi(\mathbf{a}) - \text{sg}[\tilde{\mathbf{z}}]\|_2^2,
+\end{equation}
+where ${\rm sg}[\cdot]$ denotes stop-gradient and $\beta$ is the commitment weight. The primary policy is a classifier $\pi_1(m\mid \mathbf{o})$ trained to predict the VQ code $m$ from observation \(\mathbf{o}\). 
+At test time, we select the discrete mode \(m\) for the current chunk by choosing the highest predicted probability from $\pi_1$.
+Both encoder $E_\phi$ and decoder $D_\psi$ are implemented as compact MLPs.
+
+\textbf{Primary Mode Policy. } The primary policy $\pi_1(m\mid \mathbf{o})$ maps the shared observation embedding to a categorical distribution over the $K$ VQ bins. We implement $\pi_1$ as a lightweight MLP classifier. During training $\pi_1$ is optimized with a standard cross-entropy objective that matches the encoder-assigned VQ indices. At test time we use greedy mode selection for reliability. The separation of primary-mode selection as an explicit classifier drastically reduces coarse mode bouncing. 
+
+\vspace{-2pt}
+\subsection{Mode Conditioned MeanFlow Policy}
+\vspace{-2pt}
+
+After selecting a primary mode $m$, we recover a high-quality continuous action chunk that  respects the selected mode. To balance generation quality and real-time responsiveness, we use a one-step generative modeling inspired by MeanFlow~\citep{geng2025mean}. Instead of multi-step denoising iterations, a learned average velocity field predicts the displacement from noise to the desired action in one function evaluation. Let $m$ be the selected discrete mode and $\hat{\mathbf{a}}^{(m)} := D_\psi(\mathbf{e}_m)$ be the VQ-decoder reconstruction of the mode. The role of the one-step generator is to produce a residual $\Delta\mathbf{a}$ conditioned on observation \(\mathbf{o}\) and mode $m$, such that the final action chunk is $\hat{\mathbf{a}} = \hat{\mathbf{a}}^{(m)} + \Delta\mathbf{a}$.
+
+\textbf{Mode and Observation Conditioned Average Velocity Field. } Following MeanFlow~\citep{geng2025mean}, we implement the residual as an average velocity field $\bar{\mathbf{v}}_\theta\big(\mathbf{z}_r,\,\tau,\,r;\; \mathbf{o}, m\big)$, where $\mathbf{z}_r$ denotes a state on the interpolation path between noise sample and the target action, $\tau\in[0,1]$ is the interpolation start time, and $r\in(0,1]$ is the end time. The MeanFlow field is trained to match the ground-truth average velocity over arbitrary intervals $[\tau,r]$, which is written as
+% \begin{equation}
+% \bar v^*(z_r,\tau,r)=\text{sg}\!\Big(\tfrac{dz_r}{dr} - (r-\tau)\Big(\tfrac{dz_r}{dr}\tfrac{\partial \bar v_\theta}{\partial z} + \tfrac{\partial \bar v_\theta}{\partial r}\Big)\Big).
+% \end{equation}
+\begin{equation}
+    \bar{\mathbf{v}}^*(\mathbf{z}_r,\tau,r)=\text{sg}\!\Big(\tfrac{d\mathbf{z}_r}{dr} - (r-\tau)\Big(\tfrac{d\mathbf{z}_r}{dr}\tfrac{\partial \bar{\mathbf{v}}_\theta}{\partial \mathbf{z}} + \tfrac{\partial \bar{\mathbf{v}}_\theta}{\partial r}\Big)\Big).
+\end{equation}
+The \(\tfrac{d\mathbf{z}_r}{dr}\) is the instantaneous velocity of \(\mathbf{z}_r\) at time \(r\). \(\tfrac{\partial \bar{\mathbf{v}}_\theta}{\partial \mathbf{z}}\) describes how the average velocity responds to perturbations in the residual draft, and \(\tfrac{\partial \bar{\mathbf{v}}_\theta}{\partial r}\) captures how it evolves as the interpolation approaches the target residual.
+We train $\bar{\mathbf{v}}_\theta$ with squared-error objective that supervises the predicted average velocity. More detailed derivations of the formulation are provided in Appendix.
+
+
+\textbf{Implementation Details. } For backbone modeling we use a DiT-style transformer backbone~\citep{peebles2023scalable}. Each action chunk is represented as a sequence of tokens. The time-related scalars $\tau$ and $r$ are expanded via sinusoidal embeddings~\citep{vaswani2017attention}, which are added to observation embedding, as well as a learnable embedding of the discrete mode $m$. During training, \((\tau, r)\) is sampled from a uniform distribution and \(\mathbf{z}_0\) is from standard normal distribution.  
+
+\vspace{-2pt}
+\subsection{Theoretical analysis}
+\vspace{-2pt}
+
+With the two-stage architecture defined, we now provide a concise theoretical analysis that explains why this coarse-to-fine decomposition strictly reduces the minimum achievable MSE compared to single-stage generative predictors. Single-stage generative methods produce actions by sampling a latent code $\mathbf{z}\sim\mathcal{N}(0,I)$ and decoding $\hat{\mathbf{a}}_g=\pi(\mathbf{o},\mathbf{z})$. Under the squared-error criterion, the best point estimate is the conditional expectation $\hat{\mathbf{a}}_g^*(\mathbf{o})=\mathbb{E}_{\mathbf{z}}[\pi(\mathbf{o},\mathbf{z})]$. The resulting expected MSE decomposes into an irreducible data variance term and a model bias:
+\begin{equation}
+    \mathbb{E}_{\mathbf{o},\mathbf{a}}\!\big[\|\mathbf{a}-\hat{\mathbf{a}}_g^*(\mathbf{o})\|^2\big]
+    =\mathbb{E}_\mathbf{o}\big[\mathrm{Var}(\mathbf{a}\mid \mathbf{o})\big]
+    +\mathbb{E}_\mathbf{o}\big[\|\mathbb{E}[\mathbf{a}\mid \mathbf{o}]-\hat{\mathbf{a}}_g^*(\mathbf{o})\|^2\big].
+\end{equation}
+When the model is unbiased the second term vanishes and the minimum achievable error equals $\mathbb{E}_\mathbf{o}[\mathrm{Var}(\mathbf{a}\mid \mathbf{o})]$.
+
+In our two-stage scheme the primary stage selects a discrete mode $\hat m(\mathbf{o})$ and the second stage outputs $\hat{\mathbf{a}}(\mathbf{o},m,\mathbf{z})=\pi_2(\mathbf{o},m,\mathbf{z})$. For any fixed $(\mathbf{o},m)$, the optimal MSE predictor collapses the stochasticity in $\mathbf{z}$ to the conditional expectation $\hat{\mathbf{a}}^*(\mathbf{o},m)=\mathbb{E}_\mathbf{z}[\pi_2(\mathbf{o},m,\mathbf{z})]$, yielding the irreducible residual $\mathbb{E}_{\mathbf{o},m}[\mathrm{Var}(\mathbf{a}\mid \mathbf{o},m)]$ when the model is unbiased. By the law of total variance,
+\begin{equation}
+    \mathbb{E}_{\mathbf{o},m}\big[\mathrm{Var}(\mathbf{a}\mid \mathbf{o},m)\big]
+    =\mathbb{E}_\mathbf{o}\big[\mathrm{Var}(\mathbf{a}\mid \mathbf{o})\big]-\mathbb{E}_\mathbf{o}\big[\mathrm{Var}_{m\mid \mathbf{o}}\!\big(\mathbb{E}[\mathbf{a}\mid \mathbf{o},m]\big)\big],
+\end{equation}
+which is no greater than $\mathbb{E}_\mathbf{o}[\mathrm{Var}(\mathbf{a}\mid \mathbf{o})]$, and is strictly smaller whenever $\mathrm{Var}_{m\mid \mathbf{o}}\!\big(\mathbb{E}[\mathbf{a}\mid \mathbf{o},m]\big)>0$. Intuitively, discretizing into primary modes removes inter-mode variance from the residual error, lowering the MSE bound compared to single-stage latent samplers.
+
+
+
+

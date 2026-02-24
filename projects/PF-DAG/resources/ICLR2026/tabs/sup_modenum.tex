@@ -1,0 +1,21 @@
+\begin{table*}[h]
+\centering
+\small
+\resizebox{0.7\textwidth}{!}{
+\begin{tabular}{c|ccc|c}
+\toprule
+\multicolumn{1}{c|}{Ablations} & \multicolumn{3}{c|}{Benchmarks} & \\
+ \# Modes & Adroit (3) & DexArt (4) & MetaWorld (11) & Weighted Success \\
+\midrule
+ 64 & \dd{0.77}{0.03} & \ddbfgreen{0.72}{0.04} & \ddbfgreen{0.70}{0.02} & {\cellcolor{tablecolor2}$\mathbf{0.72}$} \\
+ 8 & \dd{0.72}{0.03} & \dd{0.70}{0.02} & \dd{0.55}{0.05} & 0.61 \\
+ 16 & \ddbfgreen{0.79}{0.02} & \dd{0.71}{0.03} & \dd{0.68}{0.01} & 0.70 \\
+ 32 & \dd{0.76}{0.03} & \dd{0.71}{0.02} & \dd{0.67}{0.05} & 0.70 \\
+ 128 & \dd{0.77}{0.01} & \dd{0.69}{0.03} & \dd{0.67}{0.03} & 0.69 \\
+ 1024 & \dd{0.66}{0.02} & \dd{0.68}{0.03} & \dd{0.52}{0.06} & 0.58 \\
+\bottomrule
+\end{tabular}
+}
+\caption{Ablation study on the mode number $K$ of \mymethod.}
+\label{tab:sup_modenum}
+\end{table*}

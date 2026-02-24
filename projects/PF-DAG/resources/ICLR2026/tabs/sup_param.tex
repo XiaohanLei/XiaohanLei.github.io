@@ -1,0 +1,22 @@
+
+
+\begin{table}[h!]
+\centering
+
+\label{tab:sup_hyperparameters}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Hyperparameter} & \textbf{Description} & \textbf{Value} \\
+\midrule
+Prediction Horizon $T_p$ & The total number of timesteps in a predicted action chunk. & 32 / 16 \\
+Execution Horizon $T_a$ & The number of timesteps from the chunk executed before re-planning. & 16 / 8 \\
+Learning Rate & The peak learning rate after the warmup phase. & 1e-4 \\
+Weight Decay & The weight decay value for the AdamW optimizer. & 0.01 \\
+Batch Size & The number of samples processed per training step. & 128 \\
+Codebook Size $K$ & The number of discrete primary modes in the VQ-VAE codebook.  & 64 \\
+Commitment Weight $\beta$ & The weight of the commitment loss term in the VQ-VAE objective. & 0.25 \\
+VQ-VAE Latent Dim & The dimensionality of the VQ-VAE latent space. & 64 \\
+\bottomrule
+\end{tabular}
+\caption{Hyperparameters for the PF-DAG framework.}
+\end{table}

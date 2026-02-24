@@ -1,0 +1,18 @@
+\begin{wraptable}{r}{0.45\textwidth}  
+  \centering 
+  \vspace{-4pt}
+  \begin{tabular}{l c c}  
+    \toprule  
+    Variations & ODE Solver & Success \\ 
+    \midrule  
+    CFM    & 1-NFE Euler    & \dd{0.69}{0.03} \\
+    CFM    & 10-NFE Euler    & \dd{0.69}{0.02} \\
+    CFM    & Runge-Kutta    & \dd{0.68}{0.01} \\
+    Meanflow    & 1-NFE    & \ddbfgreen{0.72}{0.02} \\
+    \bottomrule  
+  \end{tabular}
+  \vspace{-4pt}
+    \caption{Comparison of success for MeanFlow (MF) and Conditional Flow Matching (CFM), varying the ODE solver and NFE.} 
+    \vspace{-8pt}
+  \label{tab:meanflow}  
+\end{wraptable}

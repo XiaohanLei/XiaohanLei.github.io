@@ -1,0 +1,37 @@
+\section{Real World Evaluation}
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=0.99\linewidth]{pics/real_compare.pdf}
+  \vspace{-8pt}
+  \caption{Visual comparison of common failure modes in baselines versus \mymethod. \textbf{Mode Collapse} outputs ``average'' actions, while \textbf{Mode Bouncing} randomly switches between consecutive time steps.
+  }
+  \vspace{-8pt}
+  \label{fig:real_compare}
+\end{figure*}
+
+\input{tabs/real_result}
+
+% \subsection{Hardware}
+
+\textbf{Hardware. }We evaluate our method on two single-arm hardware configurations commonly used in manipulation research: a) an UFACTORY xArm manipulator~\footnote{\url{https://www.ufactory.cc}} equipped with a two-finger parallel gripper, and b) an xArm paired with ROBOTERA XHand~\footnote{\url{https://www.robotera.com}} for dexterous manipulation. For visual sensing we use a third-person Intel RealSense L515 LiDAR camera that provides aligned color and depth frames. For the \textit{xArm + gripper} setup we additionally use a low-cost 3D-printed demonstration arm from GELLO~\citep{wu2024gello} as teleoperation device. For the \textit{xArm + XHand} setup, human hand motion is captured from a Meta Quest 3 headset and retargeted to the XHand. All computation runs on a single workstation equipped with an NVIDIA RTX 4090 laptop GPU. The robot and sensors are controlled over a local area network. 
+
+% \subsection{Teleoperation}
+
+\textbf{Teleoperation. }We collect demonstrations with two teleoperation pipelines. \textit{XArm + gripper} demonstrations are collected using the GELLO teleoperation framework~\citep{wu2024gello}, a general, low-cost and intuitive teleoperation system that allows operators to demonstrate end-effector motions with a separate low-cost manipulator. \textit{XArm + XHand} demonstrations are recorded by capturing human hand kinematics via a Meta Quest 3 headset. The recorded wrist 6-DoF pose is mapped to the xArm end-effector via Inverse Kinematics (IK), finger joint values are retargeted to the XHand via AnyTeleop~\citep{qin2023anyteleop}.
+
+% \subsection{Observation and Action Spaces}
+
+\textbf{Observation and Action Spaces. }Visual input is the RGB-D stream from the RealSense L515. Frames are backprojected to form a colored point cloud. We convert each frame into a fixed-size point cloud by applying Farthest Point Sampling. Proprioceptive observations include the xArm joint angles, when the XHand is present the observation space is extended with the XHand joint angles. For the XHand configuration we additionally log tactile readings from fingertip sensors. All observations are normalized using the statistics computed on the training split. The policy outputs actions directly in joint space for both setups. We operate in absolute joint position control.
+
+% \subsection{Baselines}
+
+\textbf{Baselines. }We compare our method to two baselines. \textbf{Vanilla BC} processes observations through the same Observation Feature Extraction pipeline used by our method, and a 3-layer MLP is trained to regress actions in a standard behavior cloning setup~\citep{levine2016end}. \textbf{DP3}~\citep{ze20243d} is a diffusion-based generative policy operating on 3D point-cloud-conditioned actions. At inference DP3 employs DDIM~\citep{song2020denoising} denoising to obtain actions. Both baselines are trained on the identical demonstration sets and evaluated under the same closed-loop control as our method.
+
+% \subsection{Tasks}
+
+\textbf{Tasks. }We evaluate on tasks spanning low-DOF gripper control and high-DOF tactile dexterous manipulation. Low-DOF examples include a \textit{Pick Cube} task (gripper picks a cube from randomized table locations) and a \textit{Place Baymax} task (place a toy ``Baymax'' from table into a cabinet). High-DOF experiments use a 12-DOF dexterous hand equipped with tactile sensing and include contact-rich tasks such as \textit{Wipe Table} (multiple possible wiping contact points) and \textit{Place Toy Into Bin} (multiple candidate toy-boxes yielding multi-modal valid outcomes). For some tasks we exploit a pretraining to fine-tuning regime. Models pretrained on a source task require substantially fewer target-task demonstrations to reach competitive performance.
+
+% \subsection{Result Analysis}
+
+\textbf{Result Analysis. }Our method consistently outperforms both baselines in success rate across low-DOF and high-DOF/tactile tasks (see Table~\ref{tab:real_result}). Qualitatively, Figure ~\ref{fig:real_compare} visualizes common failure modes of baselines, while our policy commits to coherent, single-mode rollouts when appropriate and preserves intra-mode diversity elsewhere. Typical failure cases for our method occur at out-of-distribution object placements or when tactile sensing is intermittently noisy. These failures are rare and amenable to mitigation via modest additional demonstrations or data augmentation.

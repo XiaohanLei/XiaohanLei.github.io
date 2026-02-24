@@ -1,0 +1,36 @@
+
+\section{Introduction}
+
+
+In robotic manipulation, understanding the multi‐modality of action sequences is crucial for learning a robust, reliable, and accurate imitation policy. Multi‐modality in action sequences manifests in offline expert trajectories: for the same or similar observation, there may exist vastly different actions. For example, when an obstacle lies in front of the end‐effector, human demonstrations may choose to steer either to the left or right to bypass it, as visualized in Figure~\ref{fig:teaser}. Such multi‐modality in action sequences complicates the task of learning a meaningful policy from offline data. A variety of impressive offline imitation learning methods have been proposed to address this challenge.
+
+Behavioral cloning (BC)~\citep{levine2016end, Torabi_2018} initially performs direct regression of actions via \(a = \pi(o)\), fitting expert state–action pairs with supervised learning. However, when multiple action modes exist for the same state, least squares or maximum likelihood regression typically outputs the conditional expectation of the action, producing an ``average'' action that cannot capture multiple modes, which is known as \textbf{mode collapse}. An idea to model multi‐modality is to discretize the continuous action space into a finite set of bins and predict a categorical distribution over them, thereby representing a multi‐mode action distribution~\citep{brohan2022rt, zitkovich2023rt, kim2024openvla}. Yet action discretization inevitably introduces reconstruction error, a more compact discrete representation imposes greater continuity loss, manifesting as temporal discontinuities. If adjacent bins in the action space are not spatially contiguous, neighboring predictions correspond to widely separated actions, causing trajectory jitter. Generative imitation methods~\citep{zhao2023learning, chi2023diffusion} instead introduce a latent variable \(z\) into the policy, formulating actions as \(a = \pi(o, z)\). By sampling \(z\) independently at each time step, one naturally captures multi‐mode distributions. However, if \(z\) is resampled independently at each step, the action sequence will randomly switch among modes, which is known as \textbf{mode bouncing}. Suppose there are \(K\) modes at a given state with mode probabilities \(p_i\), then the probability of switching modes between two consecutive time steps is
+\(
+1 - \sum_{i=1}^K p_i^2.
+\)
+
+
+We observe that action sequences typically comprise both ``primary modes'' and ``secondary modes''. 
+\begin{wrapfigure}{l}{0.5\textwidth}
+ % \vspace{-5pt}
+  \centering
+  % \vspace{-13pt}
+  \includegraphics[width=\linewidth]{pics/teaser.pdf}
+  \vspace{-12pt}
+  \caption{A toy example illustrating multi-modality in expert demonstrations. The figure presents two distinct discrete primary modes.  The probability of selecting each primary mode varies across different states.}
+  \vspace{-8pt}
+  \label{fig:teaser}
+\end{wrapfigure}
+For instance, in deformable object manipulation tasks such as cloth folding, sewing, or dough handling, one repeatedly performs a discrete, finite ``primary'' action (\textit{e.g.}, lift and fold), while continuously adjusting the ``secondary'' motions
+(\textit{e.g.}, grasp points, trajectories, and stretch directions according to material elasticity, gravity, and initial configurations). 
+The primary modes are discrete and finite, often corresponding to cluster centers of action chunks, while secondary modes are continuous and infinite, encoding subtle but essential variations that \textbf{mode collapse} would lose. In complex, dynamic, high precision and in-the-wild scenarios, an imitation policy must avoid primary \textbf{mode bouncing} at the coarse scale of these primary actions, while still preserving rich diversity in the secondary mode space to meet real world requirements. Therefore, our method enforces consistency within the primary modes and prevents mode collapse within the secondary modes.
+
+
+
+We propose a two-stage imitation learning framework that explicitly separates discrete primary mode selection from continuous secondary mode adjustment, simultaneously addressing mode collapse and mode bouncing (\mymethod).  We provide a theoretical analysis formalizing the MSE bound of our two-stage design, showing it is strictly lower than that of single-stage generative policies when primary mode variance is non-trivial. We validate \mymethod{} extensively across simulation and real-world settings. It outperforms diffusion and flow-based baselines on 18 tasks spanning high-DOF dexterous hands and low-DOF grippers. In real-world experiments, it generalizes to tactile dexterous manipulation and shows fast and robust results.
+
+% The remainder of this paper is organized as follows: Section 2 reviews related work on behavior cloning, action tokenization, and generative imitation; Section 3 formalizes the METHOD framework; Section 4 presents our theoretical analysis of MSE bounds; Section 5 details implementation choices (e.g., observation feature extraction, policy architectures); Sections 6 and 7 report simulation results and ablation studies to quantify component contributions; Section 8 describes real-world hardware evaluations; and Section 9 concludes with limitations and future directions.
+
+
+
+

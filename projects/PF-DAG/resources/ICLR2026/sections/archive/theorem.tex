@@ -1,0 +1,20 @@
+
+
+
+\section{Theorem}
+
+Single-stage generative methods predict actions by sampling a latent variable \( z \sim \mathcal{N}(0, I) \) given the current observation \( o \): 
+\[ 
+\hat{a}_g = \pi(o, z),\quad z \sim \mathcal{N}(0, I). 
+\]
+In the sense of minimizing the mean squared error (MSE) between the predicted action \( \hat{a}_g \) and the ground-truth action \( a \), the optimal MSE prediction of the model is the conditional expectation of its output, \textit{i.e.}, \( \hat{a}^*_g(o) = \mathbb{E}_{z \sim \mathcal{N}}[\pi(o, z)] \). The MSE is decomposed as: 
+\[
+\mathbb{E}_{o,a}\left[\|a - \hat{a}^*_g(o)\|^2\right] = \mathbb{E}_o\left[\text{Var}(a \mid o)\right] + \mathbb{E}_o\left[\| \mathbb{E}[a \mid o] - \hat{a}^*_g(o) \|^2\right].
+\]
+The first term on the right-hand side is the irreducible noise variance, and the second term is the model bias. In the optimal case where the model is unbiased, the second term vanishes, leaving only the noise variance \( \mathbb{E}_o\left[\text{Var}(a \mid o)\right] \).
+
+For the two-stage network, the primary network \( \pi_1(m \mid o) \) can be regarded as a deterministic policy for selecting primary mode \( \hat{m}(o) \). The secondary network is given by \( \hat{a}_{dg}(o, m, z) = \pi_2(o, m, z) \) with \( z \sim \mathcal{N}(0, I) \). For fixed \( o \) and \( m \), the optimal deterministic MSE prediction is the expectation over \( z \), \textit{i.e.}, \( \hat{a}^*_{dg}(o, m) = \mathbb{E}_{z \sim \mathcal{N}}[\pi_2(o, m, z)] \). Since the latent variable \( z \) here cannot make the MSE lower bound smaller than the residual obtained from the conditional expectation of the true distribution, the randomization in the second stage can be ``collapsed'' into a conditional expectation function \( \hat{a}^*(o, m) = \mathbb{E}[a \mid o, m] \). Similar to the single-stage generative methods, the bias term is zero when the model predicts perfectly without bias. Then, the minimum  irreducible residual is \( \mathbb{E}_{o,m}\left[\text{Var}(a \mid o, m)\right] \). By the law of total variance, we have:
+\[
+\mathbb{E}_{o,m}\left[\text{Var}(a \mid o, m)\right] = \mathbb{E}_o\left[\text{Var}(a \mid o)\right] - \mathbb{E}_o\left[\text{Var}_{m|o}\left( \mathbb{E}(a \mid o, m) \right)\right] \leq \mathbb{E}_o\left[\text{Var}(a \mid o)\right].
+\]
+Thus, the optimal MSE lower bound of the two-stage network is necessarily no higher than that of the single-stage generative network, with a strict improvement if and only if the variance of the second term is positive. 

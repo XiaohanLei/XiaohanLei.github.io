@@ -1,0 +1,22 @@
+\section{\mymethod{} Design}
+
+
+In this section we describe the key design details for \mymethod. 
+
+% \subsection{Observation Feature Extraction}
+
+\textbf{Observation Feature Extraction. }We treat the input observation $o_t=(p_t,s_t)$ as the concatenation of a fixed-size point cloud $p_t$ and the robot proprioceptive vector $s_t$. We follow a simple PointNet-style~\citep{qi2017pointnet} pipeline. Each point’s coordinates are lifted by an MLP, and LayerNorm~\citep{ba2016layer} is applied inside that per-point MLP. Per-point features are aggregated by a symmetric max-pooling. The proprioceptive vector is passed through a separate MLP and then concatenated with the pooled point-cloud embedding. A final projection MLP fuses the concatenated vector into the shared observation embedding.
+
+% \subsection{Primary Mode Tokenization and Policy}
+
+\textbf{Primary Mode Tokenization and Policy. }To capture coarse, discrete action modes we compress each action chunk $a\in\mathbb{R}^{T_p\times d_a}$ into a small set of $K$ primary modes via VQ-VAE~\citep{van2017neural}. Both encoder $E_\phi$ and decoder $D_\psi$ are implemented as compact MLPs. The primary policy $\pi_1(m\mid o)$ maps the shared observation embedding to a categorical distribution over the $K$ VQ bins. We implement $\pi_1$ as a lightweight MLP classifier. During training $\pi_1$ is optimized with a standard cross-entropy objective that matches the encoder-assigned VQ indices. At test time we use greedy mode selection for reliability. The separation of primary-mode selection as an explicit classifier drastically reduces coarse mode-bouncing. 
+
+% \subsection{Mode Conditioned MeanFlow Policy}
+
+\textbf{Mode Conditioned MeanFlow Policy. }Once the discrete primary mode $m$ is selected, the secondary stage recovers a high-fidelity continuous action chunk. For the MeanFlow policy, we use a DiT-style transformer backbone~\citep{peebles2023scalable}. Each action chunk is represented as a sequence of tokens. The time-related scalars $\tau$ and $r$ are expanded via sinusoidal embeddings~\citep{vaswani2017attention}, which are added to observation embedding, as well as a learnable embedding of the discrete mode $m$. During training, \((\tau, r)\) is sampled from a uniform distribution and \(z_0\) is from standard normal distribution.
+
+% \subsection{Training Details}
+
+\textbf{Training Details. }All networks are optimized with AdamW~\citep{loshchilov2017decoupled}. We employ a short linear warmup followed by cosine decay for the learning rate. During trainging, we first pretrain the VQ-VAE, then freeze it and jointly train primary policy and mode conditioned MeanFlow policy. During inference, we directly set \((\tau, r) \;=\; (0, 1)\) for one-step continuous action chunk generation.
+
+

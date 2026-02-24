@@ -1,0 +1,57 @@
+% \begin{table*}[t]
+% \centering
+% \small
+% \resizebox{\textwidth}{!}{
+% \begin{tabular}{l|lccccc|c}
+% \toprule
+% Method & Task Description & \# Variations & \# Demos & End Effector & Tactile & Action Dim & Success \\
+% \midrule
+% \multirow{4}{*}{Vanilla BC} & \textit{Pick Cube} & 3 & 50 & Gripper & \no & \(7+1\) & 0.20 \\
+% & \textit{Place Baymax} & 1 & 10 & Gripper & \no & \(7+1\) & 0.40 \\
+% & \textit{Wipe Table} & 5 & 50 & XHand & \yes & \(7+12\) & 0.00 \\
+% & \textit{Place Toy Into Bin} & 4 & 50 & XHand & \yes & \(7+12\) & 0.00 \\
+% \midrule
+% \multirow{4}{*}{DP3} & \textit{Pick Cube} & 3 & 50 & Gripper & \no & \(7+1\) & 0.60 \\
+% & \textit{Place Baymax} & 1 & 10 & Gripper & \no & \(7+1\) & 0.85 \\
+% & \textit{Wipe Table} & 5 & 50 & XHand & \yes & \(7+12\) & 0.55 \\
+% & \textit{Place Toy Into Bin} & 4 & 50 & XHand & \yes & \(7+12\) & 0.60 \\
+% \midrule
+% \multirow{4}{*}{\textbf{\mymethod{} (Ours)}} & \textit{Pick Cube} & 3 & 50 & Gripper & \no & \(7+1\) & {\cellcolor{tablecolor2}$\mathbf{0.70}$} \\
+% & \textit{Place Baymax} & 1 & 10 & Gripper & \no & \(7+1\) & {\cellcolor{tablecolor2}$\mathbf{0.90}$} \\
+% & \textit{Wipe Table} & 5 & 50 & XHand & \yes & \(7+12\) & {\cellcolor{tablecolor2}$\mathbf{0.70}$} \\
+% & \textit{Place Toy Into Bin} & 4 & 50 & XHand & \yes & \(7+12\) & {\cellcolor{tablecolor2}$\mathbf{0.80}$} \\
+% \bottomrule
+% \end{tabular}
+% }
+% \vspace{-8pt}
+% \caption{Quantitative comparison of \mymethod{} and baselines on real-world manipulation tasks}
+% \vspace{-16pt}
+% \label{tab:real_result}
+% \end{table*}
+
+
+
+
+\begin{table*}[t]
+\centering
+\small
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|ccccc|ccc}
+\toprule
+\multirow{2}{*}{\textit{Task Description}} & \multicolumn{5}{c|}{Task Parameters} & \multicolumn{3}{c}{Success Rate} \\
+% \cmidrule(lr){2-6}\cmidrule(lr){7-9}
+& \# Variations & \# Demos & End Effector & Tactile & Action Dim & Vanilla BC & DP3 & \textbf{\mymethod{} (Ours)} \\
+\midrule
+\textit{Pick Cube} & 3 & 50 & Gripper & \no & \(7+1\) & 0.20 & 0.60 & {\cellcolor{tablecolor2}$\mathbf{0.70}$} \\
+\textit{Place Baymax} & 1 & 10 & Gripper & \no & \(7+1\) & 0.40 & 0.85 & {\cellcolor{tablecolor2}$\mathbf{0.90}$} \\
+\textit{Wipe Table} & 5 & 50 & XHand & \yes & \(7+12\) & 0.00 & 0.55 & {\cellcolor{tablecolor2}$\mathbf{0.70}$} \\
+\textit{Place Toy Into Bin} & 4 & 50 & XHand & \yes & \(7+12\) & 0.00 & 0.60 & {\cellcolor{tablecolor2}$\mathbf{0.80}$} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-12pt}
+\caption{Quantitative comparison of success rates of different methods on real world manipulation tasks. The table presents key task parameters alongside the performance of each method.}
+\vspace{-8pt}
+\label{tab:real_result}
+\end{table*}
+

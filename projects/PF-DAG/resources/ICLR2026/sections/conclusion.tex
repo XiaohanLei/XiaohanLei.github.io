@@ -1,0 +1,11 @@
+
+
+\vspace{-4pt}
+\section{Conclusion}
+\vspace{-4pt}
+
+In this work we present \mymethod{}, a two-stage imitation learning framework that decouples primary mode selection from fine-grained action generation. 
+\mymethod{} first uses a VQ-VAE to tokenize action chunks into discrete modes.
+A lightweight primary policy is then trained to predict these modes from observations, allowing for stable and consistent coarse mode selection.
+The framework then employs a mode conditioned MeanFlow policy to produce high-fidelity continuous actions conditioned on the selected mode. We prove that, under realistic variance assumptions, \mymethod{} attains a strictly lower MSE bound than comparable single-stage generative policies. Empirically, \mymethod{} outperforms state-of-the-art baselines on 56 simulated tasks and on real world tactile dexterous manipulation. Future work will extend \mymethod{} to long-horizon hierarchical control and investigate uncertainty-aware refiners for improved robustness.
+

@@ -1,0 +1,57 @@
+
+\section{\mymethod{} Formulation}
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=0.99\linewidth]{pics/methodv1.drawio.pdf}
+  % \includesvg[width=0.99\linewidth]{pic/method.drawio.svg}
+  \vspace{-8pt}
+  \caption{Overview of our \mymethod{} framework. The input observation features are extracted via Observation Feature Extraction and then fed to the Primary Mode Policy \(\pi_1\). The GT action chunks are compressed into discrete primary modes using VQ-VAE and supervise \(\pi_1\).  The Mode Conditioned MeanFlow Policy \(\pi_2\) takes the selected primary mode \(m\) and observation features as input, generating high-fidelity continuous actions. 
+  }
+  \vspace{-16pt}
+  \label{fig:method}
+\end{figure*}
+
+This section formalizes our \mymethod{} for multimodal action-sequence imitation: 1) a compact discrete primary mode representation learned by a Vector-Quantized VAE (VQ-VAE)~\citep{van2017neural} that discretizes action chunks into a small number of bins, and 2) a fast mode-conditioned one-step generative decoder based on MeanFlow~\citep{geng2025mean} that synthesizes high-fidelity continuous action chunks conditioned on the selected primary mode and the current observation. The two stages together enforce coarse discrete mode consistency while preserving fine continuous variability within modes. 
+
+\subsection{Closed-loop Action Sequence Prediction}
+
+Similar to previous work~\citep{chi2023diffusion, black2410pi0}, we formulate the manipulation task as closed-loop action sequence prediction. Concretely, at time $t$, the observation is \(o_t = (p_t, s_t)\), where \(p_t\) denotes a fixed-size point cloud and $s_t\in\mathbb{R}^{d_s}$ denotes robot proprioception. The policy predicts an action chunk \(a_t \in \mathbb{R}^{T_p\times d_a}\) and executes the first $T_a\le T_p$ steps before re-planning.
+$$
+\hat a_t \sim \pi(o_t),
+\qquad
+\text{execute } \hat a_t[0:T_a-1],\text{ then } t\leftarrow t+T_a,
+$$
+This yields a receding-horizon closed-loop control scheme that preserves temporal coherence and allows fast reaction to new observations
+
+\subsection{Vector Quantized Variational Autoencoder}
+
+We compress continuous action chunks $a$ into a small discrete set of primary modes so that the policy is able to select a discrete primary mode $m\in\{1,\dots,K\}$ per chunk to avoid coarse mode-bouncing, and delegate continuous residual detail to a fast conditional decoder.
+
+Let the deterministic encoder be $E_\phi: \mathbb{R}^{T_p\times d_a}\to\mathbb{R}^D$ and decoder $D_\psi:\mathbb{R}^D\to\mathbb{R}^{T_p\times d_a}$. Let the codebook be $C=\{e_k\in\mathbb{R}^D\}_{k=1}^K$ with codebook size $K$. We choose $K$ to be small to capture coarse primary action prototypes and make primary policy easy to learn. Given an action chunk $a$, the encoder produces $z_e=E_\phi(a)$ and we quantize to the nearest codebook vector:
+$$
+k^* = \arg\min_{k}\ \|z_e - e_k\|_2,\qquad
+\tilde z = e_{k^*},\qquad m := k^*.
+$$
+Reconstruction is $\hat a = D_\psi(\tilde z)$. We train the VQ-VAE with the standard commitment + reconstruction terms:
+$$
+\mathcal{L}_{\text{VQ}}(a) \;=\; \|a - D_\psi(\tilde z)\|_2^2
+\;+\; \| \text{sg}[E_\phi(a)] - \tilde z\|_2^2
+\;+\; \beta\|E_\phi(a) - \text{sg}[\tilde z]\|_2^2,
+$$
+where ${\rm sg}[\cdot]$ denotes stop-gradient and $\beta$ is the commitment weight. The primary policy is a classifier $\pi_1(m\mid o)$ trained to predict the VQ code $m$ from observation $o$. At test time we sample $\arg\max$ from $\pi_1$ to select the discrete mode $m$ for the current chunk.
+
+\subsection{Mode Conditioned MeanFlow Policy}
+
+After selecting a primary mode $m$, we recover a high-quality continuous action chunk that  respects the selected mode, and preserves intra-mode diversity. To boost the inference speed, we use a one-step generative modeling inspired by MeanFlow~\citep{geng2025mean}. Instead of multi-step denoising iterations, a learned average-velocity field predicts the displacement from noise to the desired action in one function evaluation. Let $m$ be the selected discrete mode and $\hat a^{(m)} := D_\psi(e_m)$ be the VQ-decoder reconstruction of the mode. The role of the one-step generator is to produce a residual $\Delta a$ conditioned on observation $o$ and mode $m$, such that the final action chunk is $\hat a = \hat a^{(m)} + \Delta a$.
+
+Following MeanFlow~\citep{geng2025mean}, we implement the residual as an average velocity field $\bar v_\theta\big(z_r,\,\tau,\,r;\; o, m\big)$, where $z_r$ denotes a state on the interpolation path between noise sample and the target action, $\tau\in[0,1]$ is the interpolation start time, and $r\in(0,1]$ is the end time. The MeanFlow field is trained to match the ground-truth average velocity over arbitrary intervals $[\tau,r]$, which is written as
+$$
+\bar v^*(z_r,\tau,r) \;=\;\text{sg}(d_r z_r - (r - \tau)(d_r z_r \partial_z\bar v_\theta \;+\; \partial_r \bar v_\theta  )).
+$$
+We train $\bar v_\theta$ with a simple squared-error objective that supervises the predicted average velocity. The reader is referred to the MeanFlow paper~\citep{geng2025mean} for more details. 
+
+
+
+
+

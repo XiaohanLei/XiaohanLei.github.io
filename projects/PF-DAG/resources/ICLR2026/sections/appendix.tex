@@ -1,0 +1,167 @@
+\appendix
+\section{Appendix}
+
+\subsection{Visualizing Primary Mode Distribution}
+\label{sec:appendix_viz_mode}
+
+To provide a more intuitive understanding of the Primary Mode Policy $\pi_1$, we present a qualitative analysis of its behavior during evaluation episodes. Figure~\ref{fig:sup_viz_mode} visualizes the policy's outputs at selected keyframes from four representative simulation tasks. For each keyframe, the policy's input point cloud $p_t$ is shown alongside a heatmap representing the predicted probability distribution, over the discrete modes in the VQ codebook. These visualizations reveal that the policy learns a structured and context-aware mapping from inputs to high-level action primitives. As the episode progresses and the observation changes (\textit{e.g.} from approaching an object to making contact) the distribution of predicted modes shifts accordingly, concentrating probability mass on a sparse set of task-relevant modes.
+
+
+\subsection{More Simulation Results}
+
+\label{subsec:appendix_sim_results}
+
+To further verify the generality and stability of \mymethod{} in robotic manipulation tasks, this appendix supplements the quantitative experimental results of \mymethod{} and mainstream baselines on more tasks under the Adroit, DexArt, and MetaWorld benchmarks. These tasks cover both low-DOF gripper control and high-DOF dexterous hand manipulation, including additional fine-grained operations and complex task categories. All experimental settings are consistent with Section 6 of the main text, including the data collection pipeline, training hyperparameters, and evaluation metrics. The results in Table~\ref{tab:sup_result} further confirm that \mymethod{} maintains consistent performance advantages over baselines across tasks of varying complexities.
+
+\input{tabs/sup_result}
+
+\begin{figure*}[tb]
+  \centering
+  % \vspace{-8pt}
+  \includegraphics[width=0.99\linewidth]{pics/supp_mode.pdf}
+  \caption{
+        Qualitative visualization of the Primary Mode Policy ($\pi_1$) at keyframes from four different simulation tasks.
+        Each row corresponds to a single task episode. Within each row, three keyframes show the point cloud observation (left) and the corresponding predicted probability distribution over the discrete primary modes (right) as a heatmap. The vertical axis of the heatmap represents the mode index. The shifting patterns in the heatmaps demonstrate that the policy learns a dynamic, context-dependent mapping from observation to a belief over high-level actions as the task progresses.
+  }
+  \label{fig:sup_viz_mode}
+\end{figure*}
+
+\subsection{MeanFlow Derivation}
+
+This section provides a detailed derivation of the training objective for our mode-conditioned MeanFlow policy, as mentioned in Section 3.4. The formulation is based on the principles introduced by MeanFlow~\citep{geng2025mean}, which models the \textit{average velocity} of a generative path rather than the \textit{instantaneous velocity}.
+
+Let the path between a noise sample $z_0 \sim \mathcal{N}(0, I)$ and the target action residual $\Delta a$ be defined by an interpolation $z_r$ for a time variable $r \in [0, 1]$. The instantaneous velocity at time $r$ is denoted by $v(z_r, r) = \frac{d z_r}{dr}$.
+
+The core concept is to define an \textbf{average velocity field} $\bar{v}(z_r, \tau, r; o, m)$ over an arbitrary time interval $[\tau, r]$, where $o$ is the observation and $m$ is the selected primary mode. This field is formally defined as the displacement between two points on the path, divided by the time interval:
+\begin{equation}
+\bar{v}(z_r, \tau, r; o, m) \triangleq \frac{1}{r-\tau} \int_{\tau}^{r} v(z_s, s; o, m) ds, 
+\end{equation}
+where $s$ is the integration variable for time. To make this definition amenable to training, we first rewrite it by clearing the denominator:
+\begin{equation}
+(r-\tau)\bar{v}(z_r, \tau, r; o, m) = \int_{\tau}^{r} v(z_s, s; o, m) ds.
+\end{equation}
+Next, we differentiate both sides with respect to the end time $r$, treating the start time $\tau$ as a constant. Applying the product rule to the left-hand side and the Fundamental Theorem of Calculus to the right-hand side yields:
+\begin{equation}
+\frac{d}{dr} \left[ (r-\tau)\bar{v}(z_r, \tau, r) \right] = \frac{d}{dr} \int_{\tau}^{r} v(z_s, s) ds,
+\end{equation}
+\begin{equation}
+\bar{v}(z_r, \tau, r) + (r-\tau) \frac{d}{dr}\bar{v}(z_r, \tau, r) = v(z_r, r).
+\end{equation}
+For clarity, we have omitted the conditioning on $(o, m)$ in the last two steps. Rearranging the terms, we arrive at the \textbf{MeanFlow Identity}, which establishes a fundamental relationship between the average and instantaneous velocities:
+\begin{equation}
+\bar{v}(z_r, \tau, r) = v(z_r, r) - (r-\tau) \frac{d}{dr}\bar{v}(z_r, \tau, r).
+\label{eq:meanflow_identity}
+\end{equation}
+This identity provides a way to define a target for our neural network without computing an integral. To do so, we must first express the total time derivative $\frac{d}{dr}\bar{v}$ in a computable form. Since $\bar{v}$ is a function of $(z_r, \tau, r)$, we expand the total derivative using the chain rule:
+\begin{equation}
+\frac{d}{dr}\bar{v}(z_r, \tau, r) = \frac{\partial \bar{v}}{\partial z} \frac{dz_r}{dr} + \frac{\partial \bar{v}}{\partial \tau} \frac{d\tau}{dr} + \frac{\partial \bar{v}}{\partial r} \frac{dr}{dr}.
+\end{equation}
+Given that $\frac{dz_r}{dr} = v(z_r, r)$, $\frac{d\tau}{dr} = 0$ (as $\tau$ is independent of $r$), and $\frac{dr}{dr} = 1$, the expression simplifies to:
+\begin{equation}
+\frac{d}{dr}\bar{v}(z_r, \tau, r) = v(z_r, r) \frac{\partial \bar{v}}{\partial z} + \frac{\partial \bar{v}}{\partial r}.
+\label{eq:total_derivative}
+\end{equation}
+Substituting this result (\ref{eq:total_derivative}) back into the MeanFlow Identity (\ref{eq:meanflow_identity}), we obtain an expression for the average velocity that only depends on the instantaneous velocity $v$ and the partial derivatives of $\bar{v}$:
+\begin{equation}
+\bar{v}(z_r, \tau, r) = v(z_r, r) - (r-\tau) \left( v(z_r, r) \frac{\partial \bar{v}}{\partial z} + \frac{\partial \bar{v}}{\partial r} \right).
+\end{equation}
+This equation forms the basis for our training objective. We parameterize the average velocity field with a neural network $\bar{v}_\theta(z_r, \tau, r; o, m)$. The right-hand side of the equation becomes the regression target, where we replace the true partial derivatives of $\bar{v}$ with those of our network $\bar{v}_\theta$. Following standard practice, we apply a stop-gradient operator, $\sg{\cdot}$, to the target to prevent backpropagation through the Jacobian-vector products, which stabilizes training.
+
+The resulting target, $\bar{v}_{tgt}$, is:
+\begin{equation}
+\bar{v}_{tgt} = v(z_r, r) - (r-\tau) \left( v(z_r, r) \frac{\partial \bar{v}_\theta}{\partial z} + \frac{\partial \bar{v}_\theta}{\partial r} \right).
+\end{equation}
+The instantaneous velocity $v(z_r, r)$ is substituted with the conditional velocity (i.e., the ground-truth residual $\Delta a$ minus the initial noise $z_0$). The final loss function is the expected squared $\ell_2$ error between our network's prediction and this supervised target:
+\begin{equation}
+\mathcal{L}(\theta) = \mathbb{E}_{\Delta a, z_0, \tau, r} \left\| \bar{v}_\theta(z_r, \tau, r; o, m) - \sg{\bar{v}_{tgt}} \right\|_2^2.
+\end{equation}
+This objective allows the network $\bar{v}_\theta$ to learn the average velocity field directly, enabling efficient one-step generation of the action residual $\Delta a$ at inference time.
+
+
+\label{subsec:appendix_meanflow}
+
+
+\subsection{Implementation and Training Hyperparameters}
+
+\label{subsec:appendix_hyper}
+
+This subsection details the key hyperparameters used for training and implementing our \mymethod{}. 
+
+\input{tabs/sup_param}
+
+\subsection{Ablation Study on Mode Number}
+
+We present more results on mode number $K$, as seen in Table~\ref{tab:sup_modenum}.
+
+\input{tabs/sup_modenum}
+
+
+\subsection{Quantitative Stability Analysis}
+To quantitatively validate our claim that PF-DAG produces more stable trajectories by reducing mode bouncing, we analyze the \textbf{total end-effector jerk} in our real-world experiments (Section 4.2), where stability is critical. Jerk, a standard metric for motion smoothness, is the integral of the squared magnitude of the third derivative of position over the trajectory duration $T$:
+$$
+\text{Jerk} = \int_{0}^{T} \left\| \frac{d^3 \mathbf{p}(t)}{dt^3} \right\|^2 dt
+$$
+A lower total jerk indicates a physically smoother, less shaky, and more stable trajectory. We computed this metric for the contact-rich `Wipe Table' task from our real-world evaluation, comparing PF-DAG against DP3. As shown in Table \ref{tab:jerk}, PF-DAG achieves significantly lower jerk, confirming it generates smoother, less erratic end-effector movements. 
+
+
+\begin{table}[h]
+\centering
+
+\label{tab:jerk}
+\begin{tabular}{lc}
+\toprule
+Method & Total Jerk ($\downarrow$) \\
+\midrule
+DP3 & 1.25 \\
+\textbf{PF-DAG (Ours)} & \textbf{0.45} \\
+\bottomrule
+\end{tabular}
+\caption{Total end-effector jerk ($\downarrow$) comparison on the real-world 'Wipe Table' task.}
+\end{table}
+
+
+
+\subsection{Rigorous Analysis of the MSE Trade-off}
+The analysis in the main text assumes an oracle $\pi_1$ to illustrate how our architecture decomposes variance. Here, we provide a more rigorous analysis of the practical trade-off, considering errors from our learned $\pi_1$.
+\subsubsection{The Problem with MSE-Optimal Predictors}
+The central thesis of our paper is that in multi-modal tasks, a predictor that is ``optimal'' under the Mean Squared Error (MSE) criterion is undesirable. A standard Behavioral Cloning (BC) model that predicts the conditional expectation $\hat{a}^*(o) = \mathbb{E}[a|o]$ is, by definition, the optimal deterministic predictor. Its minimum achievable loss is:
+$$
+L_g^* = \mathbb{E}_{o}[Var(a|o)]
+$$
+Using the law of total variance, we decompose this loss:
+$$
+L_g^* = \underbrace{\mathbb{E}_{o,m}[Var(a|o,m)]}_{V_{\text{intra}}} + \underbrace{\mathbb{E}_o[Var_{m|o}(\mathbb{E}[a|o,m])]}_{V_{\text{inter}}}
+$$
+\begin{itemize}
+    \item $V_{\text{intra}}$: The \textbf{within-mode variance}. This is the fine-grained variation that our $\pi_2$ must model.
+    \item $V_{\text{inter}}$: The \textbf{inter-mode variance}. This is the variance between the means of the different modes (\textit{e.g.}, the difference between ``go left'' and ``go right'').
+\end{itemize}
+The MSE-optimal predictor $\mathbb{E}[a|o]$ averages these modes, resulting in $V_{\text{inter}}$ as a fundamental component of its error. This is precisely \textbf{mode collapse}, which is catastrophic for task success.
+\subsubsection{The PF-DAG Trade-Off: $V_{\text{inter}}$ vs. $E_{\text{classify}}$}
+Our two-stage model, PF-DAG, makes a ``hard'' mode selection $\hat{m} = \pi_1(o)$. The final action is the prediction of the second stage, $\hat{a}_{\text{PF-DAG}}(o) = \mathbb{E}_z[\pi_2(o, \hat{m}, z)]$. For this analysis, let's assume a perfect $\pi_2$ that correctly predicts the mean of its target mode, \textit{i.e.}, $\mathbb{E}_z[\pi_2(o, k, z)] = \mathbb{E}[a|o, m=k]$, which we denote $\mu_k(o)$.
+The practical MSE of our model is $L_{\text{PF-DAG}} = \mathbb{E}_{o,a}[||a - \mu_{\hat{m}(o)}(o)||^2]$. We decompose this by conditioning on the true, unobserved mode $m$:
+$$
+L_{\text{PF-DAG}} = \mathbb{E}_o \left[ \sum_m p(m|o) \mathbb{E}_{a|o,m} [||a - \mu_{\hat{m}(o)}(o)||^2] \right]
+$$
+Using the identity $\mathbb{E}[||X - c||^2] = Var(X) + ||\mathbb{E}[X] - c||^2$, where $X=a|o,m$ and $c=\mu_{\hat{m}(o)}(o)$:
+$$
+L_{\text{PF-DAG}} = \mathbb{E}_o \left[ \sum_m p(m|o) (Var(a|o,m) + ||\mu_m(o) - \mu_{\hat{m}(o)}(o)||^2) \right]
+$$
+$$
+L_{\text{PF-DAG}} = \underbrace{\mathbb{E}_{o,m}[Var(a|o,m)]}_{V_{\text{intra}}} + \underbrace{\mathbb{E}_o \left[ \sum_m p(m|o) ||\mu_m(o) - \mu_{\hat{m}(o)}(o)||^2 \right]}_{E_{\text{classify}}}
+$$
+This reveals the explicit trade-off of our architecture:
+\begin{itemize}
+    \item \textbf{Single-Stage (BC):} $L_g^* = V_{\text{intra}} + V_{\text{inter}}$
+    \item \textbf{PF-DAG (Ours):} $L_{\text{PF-DAG}} = V_{\text{intra}} + E_{\text{classify}}$
+\end{itemize}
+PF-DAG is designed to trade $V_{\text{inter}}$ (the guaranteed, catastrophic cost of mode collapse) for $E_{\text{classify}}$ (the probabilistic cost of misclassification). Our strong empirical task success (Tables 1, 2, 5) supports our hypothesis that $V_{\text{inter}}$ is fatal for task execution, while $E_{\text{classify}}$ is a non-catastrophic and manageable error. Our framework replaces a guaranteed failure mode with a high-probability success, which is a highly desirable trade-off for robotic imitation.
+
+
+
+
+
+\subsection{Acknowledgments on LLM Usage}
+
+We acknowledge the use of a large language model (LLM) for aiding in the writing and polishing of this paper. The LLM is used as a tool to improve the clarity, grammar, and style of certain sections. Its contributions are limited to editorial and linguistic improvements, and it is not used to generate novel ideas, perform research, or formulate the core technical content. All scientific contributions, experimental results, and intellectual content are the original work of the human authors. 
+

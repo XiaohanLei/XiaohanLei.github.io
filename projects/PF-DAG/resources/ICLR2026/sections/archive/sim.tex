@@ -1,0 +1,29 @@
+
+
+\input{tabs/sim_result}
+
+\input{tabs/ablations}
+
+\section{Simulation Evaluation}
+
+% \subsection{Benchmarks and Datasets}
+
+\textbf{Benchmarks and Datasets. }We evaluate our method on manipulation benchmarks that cover a broad range of control domains. We use Adroit~\citep{rajeswaran2017learning}, DexArt~\citep{bao2023dexart} and MetaWorld~\citep{yu2020meta} as our simulation benchmarks. These are implemented on physics engines like MuJoCo~\citep{todorov2012mujoco} and IsaacGym~\citep{makoviychuk2021isaac}. For fair comparison we adopt the same task splits and data collection pipelines as in prior work~\citep{ze20243d}: Adroit tasks with high-dimensional Shadow hand and MetaWorld with low-dimensional gripper are trained with 10 expert demos per task, while DexArt with Allegro hand uses 90 expert demos. Demonstrations are collected using scripted policies for MetaWorld tasks, and RL-trained expert agents~\citep{wang2022vrl3, schulman2017proximal} for Adroit and DexArt. All baselines are trained on the same demonstration sets. Each experiment is run with three random seeds. For each seed we evaluate the policy for 20 episodes every 200 training epochs and then compute the average of the top-5 highest success rates~\citep{ze20243d}. The final metric is the mean and standard deviation across the three seeds. 
+
+\textbf{Experiment Setup. } All networks are optimized with AdamW~\citep{loshchilov2017decoupled}. We apply a short linear warmup followed by cosine decay for the learning rate. Training proceeds in stages: first we pretrain the VQ-VAE to learn compact primary prototypes; then we freeze the codebook and jointly train the Primary Mode Policy $\pi_1$ (cross-entropy to the VQ indices) and the mode-conditioned MeanFlow generator $\bar v_\theta$ (squared-error supervision on sampled $(\tau,r)$ intervals). At inference we set $(\tau,r)=(0,1)$for one-step continuous action chunk generation
+
+% \subsection{Baselines}
+
+\textbf{Baselines. }We compare against the following representative baselines. 
+% Implicit Behavioral Cloning (IBC)~\citep{florence2022implicit} serves as a representative implicit BC method. 
+Diffusion Policy (DP)~\citep{chi2023diffusion} pioneers the original formulation of image-conditioned diffusion-based policies. While 3D Diffusion Policy (DP3)~\citep{ze20243d} represents a recent advancement in 3D-point-cloud conditioned diffusion-based policies, Flow Policy (FP)~\citep{zhang2025flowpolicy} falls into the category of normalizing-flow-based policy variants.  These baselines provide a spectrum from energy-based model to expressive generative policies.
+
+
+% \subsection{Key Findings}
+
+\textbf{Key Findings. }Across Adroit, DexArt and MetaWorld, our method substantially outperforms diffusion and other baselines, as seen in Table~\ref{tab:sim}. More results are presented in Appendix~\ref{subsec:appendix_sim_results}. Beyond that, our two-stage design preserves primary-mode consistency even when action chunks are short, which approaches open-loop and highly reactive operation. Meanwhile, our primary-mode tiny MLP and the one-step generator together yield fast one-shot generation while maintaining high success rates, as discussed in Ablations section. These findings indicate that explicitly decoupling coarse discrete mode selection from continuous intra-mode variation yields both statistical and practical benefits.
+
+
+
+% Taken together, these findings indicate that explicitly decoupling coarse discrete mode selection from continuous intra-mode variation yields both statistical and practical benefits: better final success rates, more stable temporal behavior (less mode bouncing), and efficient inference — claims we substantiate in the Real-World and Ablation sections.
+

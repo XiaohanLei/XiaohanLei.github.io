@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Primary-Fine Decoupling for Action Generation: A Two-Stage Imitation Framework for Robotic Manipulation">
+  <meta name="keywords" content="Robotic Manipulation, Imitation Learning, Action Generation, Multi-Modal">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PF-DAG: Primary-Fine Decoupling for Action Generation in Robotic Imitation</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <!-- <link rel="icon" href="./static/images/gpt.png"> -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://xiaohanlei.github.io/">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">PF-DAG: Primary-Fine Decoupling for Action Generation in Robotic Imitation</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://xiaohanlei.github.io/">Xiaohan Lei</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://wmyolanda.github.io/">Min Wang</a><sup>2</sup>,</span>
+            <span class="author-block">
+                <a href="http://staff.ustc.edu.cn/~zhwg">Wengang Zhou</a><sup>1,2</sup>,</span>
+            <span class="author-block">
+              Xingyu Lu<sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="http://staff.ustc.edu.cn/~lihq/">Houqiang Li</a><sup>1,2</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>University of Science and Technology of China</span>
+            <span class="author-block"><sup>2</sup>Institute of Artificial Intelligence, Hefei Comprehensive National Science Center</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="resources/ICLR2026/pf-dag.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code (Coming Soon)</span>
+                  </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="resources/real_demo.mp4"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-video"></i>
+                  </span>
+                  <span>Demo Video</span>
+                </a>
+              </span>
+
+              <p style="font-size: 24px; color: red; font-weight: bold;">🎉 Accepted by ICLR 2026 ! 🎉</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video src="resources/real_demo.mp4" controls autoplay muted style="width: 100%; height: auto;"></video>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            In robotic manipulation, capturing multi-modal distributions in action sequences is essential for learning robust and reliable imitation policies. Offline expert trajectories often admit multiple valid actions for the same or similar observations, which complicates learning from offline data.
+            Existing methods face challenges such as collapsing multiple valid actions into a single mean, introducing temporal discontinuities, or producing random switches among modes.
+            To address these issues, we propose Primary-Fine Decoupling for Action Generation (PF-DAG), a two-stage imitation framework that explicitly separates primary mode selection from continuous action generation.
+            PF-DAG first learns a discrete vocabulary of primary modes and a lightweight policy that greedily selects a mode coherently. Then, it introduces a mode conditioned MeanFlow policy, which is a one-step continuous decoder to generate high-fidelity actions conditioned on the selected mode and the current observation.
+            This explicit two-stage decomposition preserves intra-mode variations while reducing mode bouncing by enforcing stable primary choices.
+            We validate PF-DAG with theoretical and empirical evidence, showing consistent improvements in accuracy, stability, and sample efficiency compared to diffusion and flow-based baselines across 56 simulation manipulation tasks and real-world tactile dexterous manipulation.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Multi-modal Expert Demonstrations and Trajectories</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/teaser.png" alt="Multi-modal Expert Demonstrations and Trajectories" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure illustrates the comparison between different imitation policies. Behavioral cloning predictions collapse into a single mean. Discrete Policy succeeds but introduces temporal discontinuities. Generative Policy bounces between mode 1 and 2. Our PF-DAG predicts consistent and fine-grained trajectory.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">PF-DAG Framework Overview</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/methodv1.drawio.png" alt="PF-DAG Framework Overview" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure shows the architecture of our PF-DAG framework. The input observation features are extracted via Observation Feature Extraction and then fed to the Primary Mode Policy. The GT action chunks are compressed into discrete primary modes using VQ-VAE and supervise the Primary Mode Policy, which are only used in training stage. The Mode Conditioned MeanFlow Policy takes the selected primary mode and observation features as input, generating high-fidelity continuous actions.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Mode Visualization</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/mode_vis.png" alt="Mode Visualization" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure visualizes the primary modes learned by our PF-DAG framework, showing how different modes capture distinct coarse action prototypes.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Real-world Setup</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/real_setup.png" alt="Real-world Setup" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure shows the real-world experimental setup for tactile dexterous manipulation, including the robotic hand and the objects used in the experiments.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Real-world Comparison</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/real_compare.png" alt="Real-world Comparison" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure compares the performance of different methods in real-world tactile dexterous manipulation tasks, demonstrating the superiority of our PF-DAG framework.
+        </p>
+      </div>
+    </div>
+    
+    <!--/ Framework. -->
+    <!-- <div class="container is-max-desktop">
+      <div class="hero-body">
+        <img src="static/images/poifusion_framework.png" alt="PoIFusion">
+        <h2 class="subtitle has-text-centered">
+          <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
+          free-viewpoint
+          portraits.
+        </h2> -->
+      <!-- </div>
+    </div> -->
+
+    <!-- Demo. -->
+    
+    
+    <!-- <script>
+      const video = document.getElementById("myVideo");
+  
+      video.addEventListener("loadedmetadata", videoLoaded);
+      video.addEventListener("error", videoError);
+  
+      function videoLoaded() {
+        // 视频加载成功
+        // 执行播放操作
+        video.play();
+      }
+  
+      function videoError() {
+        // 视频加载失败
+        // 显示错误信息
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent = "视频加载失败，请刷新页面重试。";
+        document.body.appendChild(errorMessage);
+      }
+    </script> -->
+
+    <!-- Demo. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Performance on nuScenes dataset</h2>
+        <img src="static/images/performance.png" alt="Performance on nuScenes">
+      </div>
+    </div> -->
+
+    <!--/ Demo. -->
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{
+lei2026primaryfine,
+title={Primary-Fine Decoupling for Action Generation in Robotic Imitation},
+author={Xiaohan Lei and Min Wang and Wengang Zhou and Xingyu Lu and Houqiang Li},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=wySMuWHmt4}
+}</code></pre>
+  </div>
+</section>
+
+
+<!-- <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            Website template is borrowed from <a
+              href="https://pointscoder.github.io/projects/gpt_driver/index.html">GPT-Driver</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer> -->
+
+</body>
+</html>

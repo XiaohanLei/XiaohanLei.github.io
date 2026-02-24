@@ -1,0 +1,45 @@
+\section{Introduction}
+
+In robotic manipulation, capturing multi-modal distributions in action sequences is essential for learning robust and reliable imitation policies~\citep{florence2022implicit, chi2023diffusion}. Offline expert trajectories often admit multiple valid actions for the same or similar observations: for example, when an obstacle lies in front of the end-effector, demonstrators may steer either left or right. 
+This richness of valid behaviors complicates learning from offline data and thus motivates the development of various imitation learning approaches to tackle this challenge.
+
+Among these imitation learning approaches, Behavioral Cloning (BC) treats policy learning as supervised regression \(a=\pi(o)\) and therefore commonly collapses multiple valid actions into a single mean~\citep{levine2016end, Torabi_2018}, as visualized in Figure~\ref{fig:teaser} (a). Action discretization represents multiple modes by predicting categorical bins~\citep{brohan2022rt, zitkovich2023rt, kim2024openvla}, but coarse discretization introduces reconstruction error and temporal discontinuities~\citep{shafiullah2022behavior}, failing to match the smoothness of human demonstrations (see Figure~\ref{fig:teaser} (b)). Generative latent-variable methods instead model \(a=\pi(o,z)\) so that sampling different \(z\) yields different plausible actions~\citep{zhao2023learning, chi2023diffusion}. However, independent per-step resampling of \(z\) tends to produce random switches among modes~\citep{chen2025responsive} (see Figure~\ref{fig:teaser} (c)). 
+% This contrasts sharply with the coherent multi-modal behavior of human demonstrations.
+Such erratic transitions directly lead to trajectory discontinuities and end-effector pose instability, while further undermining the overall task execution accuracy.
+
+We observe that many manipulation tasks naturally decompose actions into a small set of discrete, interpretable \emph{primary modes} (coarse prototypes such as ``lift-and-fold'' or ``lift-and-rotate'') together with continuous, within-mode variations that adjust details like grasp offsets and minor trajectory tweaks. Intuitively, primary modes capture coarse, discrete decisions while within-mode residuals encode fine-grained variations. This observation motivates an explicit separation between i) selecting a coarse, discrete mode consistently and ii) generating the fine-grained continuous action conditioned on that mode.
+
+% \begin{wrapfigure}{l}{0.6\textwidth}
+%  % \vspace{-5pt}
+%   \centering
+%   % \vspace{-12pt}
+%   \includegraphics[width=\linewidth]{pics/teaser.pdf}
+%   \vspace{-20pt}
+%   \caption{A 2D example illustrating multi-modal expert demonstrations and trajectories predicted by typical imitation policies. Vanilla BC predictions collapse into a single mean. Discrete Policy succeeds but introduces temporal discontinuities. Generative Policy bounces between primary mode 1 and 2.}
+%   \vspace{-12pt}
+%   \label{fig:teaser}
+% \end{wrapfigure}
+
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=0.99\linewidth]{pics/teaser.pdf}
+  % \includesvg[width=0.99\linewidth]{pic/method.drawio.svg}
+  \vspace{-8pt}
+  \caption{A 2D example illustrating multi-modal expert demonstrations and trajectories predicted by different imitation policies. Behavioral cloning predictions collapse into a single mean. Discrete Policy succeeds but introduces temporal discontinuities. Generative Policy bounces between mode 1 and 2. Our work predicts consistent and fine-grained trajectory.
+  }
+  \vspace{-16pt}
+  \label{fig:teaser}
+\end{figure*}
+
+% *****************TODO**********************
+Motivated by the above, we propose Primary-Fine Decoupling for Action Generation (\mymethod), a two-stage imitation framework that explicitly separates primary mode selection from continuous action generation. 
+Concretely, \mymethod{} first learns a discrete vocabulary of primary modes and a lightweight policy that greedily selects a mode coherently. 
+Then, we introduce a mode conditioned MeanFlow policy, which is a one-step continuous decoder to generate high-fidelity actions conditioned on the selected mode and the current observation. 
+This explicit two-stage decomposition preserves intra-mode variations while reducing mode bouncing by enforcing stable primary choices.
+
+
+We validate \mymethod{} with theoretical and empirical evidence. 
+Among existing methods, single-stage generative policies~\citep{chi2023diffusion, zhao2023learning} are the most direct and competitive end-to-end approach for modeling continuous, multi-modal action distributions, so we focus our theoretical comparison on this family.
+Under realistic mode-variance assumptions we show that the two-stage design attains a no-higher optimal MSE lower bound than single-stage generative baselines, with a strict improvement whenever the inter-mode variance term is positive.
+Empirically we test \mymethod{} across 56 simulation manipulation tasks (including high-DOF dexterous hands and low-DOF grippers) as well as on real world tactile dexterous manipulation. Results show consistent improvements in accuracy, stability, and sample efficiency compared to diffusion and flow-based baselines, and ablations quantify the contribution of key components. Together, these results suggest that explicitly decoupling coarse discrete decisions from fine-grained continuous generation yields practical and statistical advantages for closed-loop robotic imitation.
