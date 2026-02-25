@@ -1,0 +1,27 @@
+\begin{table*}[t]
+\centering
+\small
+\resizebox{0.99\textwidth}{!}{
+\begin{tabular}{l|c|c|c|c|c|c}
+\toprule
+  % & & \multicolumn{3}{c|}{Simulation Benchmark (\# tasks)} & \\
+  Method & Params (M) & Modality & Adroit (3)~\cite{rajeswaran2017learning} & DexArt (4)~\cite{bao2023dexart} & Bi-DexHands (4)~\cite{chen2023bi} & Average Success  \\
+\midrule
+  Diffusion Policy~\cite{chi2023diffusion} & 266.8 & 2D & \dd{0.32}{0.03} & \dd{0.49}{0.04} & \dd{0.42}{0.05} & \dd{0.42}{0.04} \\
+  HPT~\cite{wang2024scaling} & 13.99 & 2D & \dd{0.45}{0.02}  & \dd{0.53}{0.05} & \dd{0.44}{0.04} & \dd{0.47}{0.04}  \\
+  UniAct~\cite{zheng2025universal} & 1053 & 2D & \dd{0.49}{0.01} & \dd{0.55}{0.03} & \dd{0.47}{0.07} & \dd{0.50}{0.05} \\
+  
+  3D Diffusion Policy~\cite{ze20243d} & 255.2 & 3D & \dd{0.68}{0.03} & \dd{0.69}{0.02} & \dd{0.55}{0.14} & \dd{0.63}{0.06} \\
+  3D ManiFlow Policy~\cite{yan2025maniflow} & 218.9 & 3D & \dd{0.70}{0.02} & \dd{0.70}{0.03} & \dd{0.59}{0.07} & \dd{0.66}{0.04} \\
+  \textbf{\mymethod{} (Ours)} & 19.36 & 3D & \ddbfgreen{0.75}{0.02} & \ddbfgreen{0.73}{0.03} & \ddbfgreen{0.67}{0.05} & \ddbfgreen{0.71}{0.04} \\
+\bottomrule
+
+% {\cellcolor{tablecolor2}$\mathbf{0.72}$}  \\
+
+\end{tabular}
+}
+\vspace{-8pt}
+\caption{Quantitative comparison of our method against 2D (image-based) and 3D (point cloud-based) baselines on 11 dexterous manipulation tasks from the Adroit~\cite{rajeswaran2017learning}, DexArt~\cite{bao2023dexart}, and Bi-DexHands~\cite{chen2023bi} simulation benchmarks.}
+\vspace{-16pt}
+\label{tab:sim}
+\end{table*}

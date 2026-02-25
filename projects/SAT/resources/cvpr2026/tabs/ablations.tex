@@ -1,0 +1,23 @@
+
+\begin{table}[t]
+\centering
+\small
+\resizebox{0.43\textwidth}{!}{
+\begin{tabular}{l|c}
+\toprule
+Model Variant & Success \\
+\midrule
+\mymethod{} & \ddbfgreen{0.71}{0.04} \\
+\mymethod{} w.o. global point cloud token & \dd{0.68}{0.05} \\
+\mymethod{} w.o. local point cloud token & \dd{0.69}{0.03} \\
+\mymethod{} w.o. causal mask & \dd{0.68}{0.04} \\
+\mymethod{} w.o. joint embedding & \dd{0.01}{0.01} \\
+\mymethod{} w. temporal-centric action & \dd{0.64}{0.05} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-8pt}
+\caption{Model component ablation. We analyze the impact of removing key architectural components on the average success rate.}
+\vspace{-12pt}
+\label{tab:ablation}
+\end{table}

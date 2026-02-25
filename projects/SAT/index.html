@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Structural Action Transformer for 3D Dexterous Manipulation">
+  <meta name="keywords" content="Robotic Manipulation, Imitation Learning, Action Generation, Transformer">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAT: Structural Action Transformer for 3D Dexterous Manipulation</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <!-- <link rel="icon" href="./static/images/gpt.png"> -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://xiaohanlei.github.io/">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">SAT: Structural Action Transformer for 3D Dexterous Manipulation</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://xiaohanlei.github.io/">Xiaohan Lei</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://wmyolanda.github.io/">Min Wang</a><sup>2</sup>,</span>
+            <span class="author-block">
+              Bohong Weng<sup>1</sup>,</span>
+            <span class="author-block">
+                <a href="http://staff.ustc.edu.cn/~zhwg">Wengang Zhou</a><sup>1,2</sup>,</span>
+            <span class="author-block">
+              <a href="http://staff.ustc.edu.cn/~lihq/">Houqiang Li</a><sup>1,2</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>University of Science and Technology of China</span>
+            <span class="author-block"><sup>2</sup>Institute of Artificial Intelligence, Hefei Comprehensive National Science Center</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="resources/cvpr2026/sat.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/XiaohanLei/SAT"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code (Coming Soon)</span>
+                  </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="resources/supp/demo.mp4"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-video"></i>
+                  </span>
+                  <span>Demo Video</span>
+                </a>
+              </span>
+              <!-- Supplementary Material Link. -->
+              <span class="link-block">
+                <a href="resources/supp/appendix.pdf"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-alt"></i>
+                  </span>
+                  <span>Supplementary Material</span>
+                </a>
+              </span>
+
+              <p style="font-size: 24px; color: red; font-weight: bold;">🎉 Accepted by CVPR 2026 ! 🎉</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video src="resources/supp/demo.mp4" controls autoplay muted style="width: 100%; height: auto;"></video>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            In robotic manipulation, capturing structural patterns in action sequences is essential for learning robust and reliable imitation policies. Offline expert trajectories often contain complex structural information that is difficult to model with existing methods.
+            Current approaches face challenges such as losing structural consistency, introducing temporal discontinuities, or failing to capture long-range dependencies in action sequences.
+            To address these issues, we propose Structural Action Transformer (SAT), a novel framework that explicitly models structural patterns in action sequences using a transformer-based architecture.
+            SAT first learns an embodied joint codebook that captures structural patterns from expert demonstrations. Then, it uses a structural policy to predict appropriate structural patterns over time, ensuring temporal consistency. Finally, a pattern-conditioned action policy generates continuous, fine-grained actions based on the predicted structural pattern and current observation.
+            This explicit structural modeling enables SAT to capture long-range dependencies and maintain temporal consistency in action sequences.
+            We validate SAT with theoretical and empirical evidence, showing consistent improvements in accuracy, stability, and sample efficiency compared to state-of-the-art baselines across 56 simulation manipulation tasks and real-world 3D dexterous manipulation.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Teaser</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/teaser.png" alt="Teaser" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure illustrates the conceptual comparison of action chunk tokenization. (a) The conventional temporal-centric perspective structures actions as a sequence of T timesteps (chunk length), with each token having dimension Da (action dim). (b) Our proposed structural-centric perspective reframes the action chunk as a sequence of Da joints, where each token's feature is its temporal trajectory over T. This (Da, T) view naturally handles heterogeneous embodiments as a variable-length, unordered sequence, which is a key feature of our approach.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">SAT Framework Overview</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/main.png" alt="SAT Framework Overview" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure shows the architecture of our SAT framework. The policy takes a history of 3D point clouds and a language instruction as input. Observation Tokenizer: Each point cloud in the history is processed via Farthest Point Sampling (FPS) and PointNets to extract local geometric tokens and a global scene context. Language is encoded by a T5 tokenizer. Structural Action Tokenizer: Guided by the manipulator's morphology, the Embodied Joint Codebook produces structural-centric embeddings aligned with the action dimension, which are added to the time-stepped noisy tokens. Structural Action Transformer: A DiT with causal masking predicts the action velocity field, which is then integrated via an ODE solver to produce the final action chunk.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Embodied Joint Codebook</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/embodied_joint_codebook.png" alt="Embodied Joint Codebook" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure visualizes the Embodied Joint Codebook learned by our SAT framework. The codebook is derived from the manipulator's morphology, defining each joint as a three-part triplet: Embodiment ID (unique identifier for the manipulator), Functional Category (classified by functional role like CMC, MCP, PIP, DIP), and Rotation Axis (describing the joint's primary motion). Each element indexes a separate learnable embedding table, and the final codebook embedding for a joint is the sum of its three component embeddings.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Real-world Setup</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/real_setup.png" alt="Real-world Setup" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure shows the real-world experimental setup for 3D dexterous manipulation using the ShadowHand robotic hand. The setup includes the robotic hand, a camera system for capturing 3D point clouds, and various objects used in the manipulation tasks.
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h3 class="title is-4">Real-world Trajectories</h3>
+        <div style="margin-bottom: 10px;">
+          <img src="static/images/real_traj.png" alt="Real-world Trajectories" style="width: 100%; height: auto; display: block;">
+        </div>
+        <p class="content has-text-justified" style="margin-top: 10px;">
+          This figure compares the trajectories generated by different methods in real-world 3D dexterous manipulation tasks. Our SAT framework generates smooth, consistent trajectories that closely follow the expert demonstrations, while other methods produce trajectories with more errors and inconsistencies.
+        </p>
+      </div>
+    </div>
+    
+    <!--/ Framework. -->
+    <!-- <div class="container is-max-desktop">
+      <div class="hero-body">
+        <img src="static/images/poifusion_framework.png" alt="PoIFusion">
+        <h2 class="subtitle has-text-centered">
+          <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
+          free-viewpoint
+          portraits.
+        </h2> -->
+      <!-- </div>
+    </div> -->
+
+    <!-- Demo. -->
+    
+    
+    <!-- <script>
+      const video = document.getElementById("myVideo");
+  
+      video.addEventListener("loadedmetadata", videoLoaded);
+      video.addEventListener("error", videoError);
+  
+      function videoLoaded() {
+        // 视频加载成功
+        // 执行播放操作
+        video.play();
+      }
+  
+      function videoError() {
+        // 视频加载失败
+        // 显示错误信息
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent = "视频加载失败，请刷新页面重试。";
+        document.body.appendChild(errorMessage);
+      }
+    </script> -->
+
+    <!-- Demo. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Performance on nuScenes dataset</h2>
+        <img src="static/images/performance.png" alt="Performance on nuScenes">
+      </div>
+    </div> -->
+
+    <!--/ Demo. -->
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{
+lei2026structural,
+title={Structural Action Transformer for 3D Dexterous Manipulation},
+author={Xiaohan Lei and Min Wang and Bohong Weng and Wengang Zhou and Houqiang Li},
+booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+year={2026},
+url={https://xiaohanlei.github.io/projects/SAT}
+}</code></pre>
+  </div>
+</section>
+
+
+<!-- <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            Website template is borrowed from <a
+              href="https://pointscoder.github.io/projects/gpt_driver/index.html">GPT-Driver</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer> -->
+
+</body>
+</html>

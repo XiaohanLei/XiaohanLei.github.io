@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\small
+\resizebox{0.45\textwidth}{!}{
+\begin{tabular}{ccc|c}
+\toprule
+Embodiment & Function & Rotation & Success (11 tasks) \\
+\midrule
+\yes & \yes & \yes & \ddbfgreen{0.71}{0.04} \\
+\no & \yes & \yes & \dd{0.57}{0.05} \\
+\yes & \no & \yes & \dd{0.02}{0.02} \\
+\yes & \yes & \no & \dd{0.62}{0.07} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-8pt}
+\caption{Ablation study on the components of the Embodied Joint Codebook.
+    We report the average success rate after fine-tuning models with different codebook components ablated.}
+\vspace{-12pt}
+\label{tab:embodied_joint_codebook_abla}
+\end{table}

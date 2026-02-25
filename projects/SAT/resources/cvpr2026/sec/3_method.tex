@@ -1,0 +1,186 @@
+\vspace{-4pt}
+\section{Method}
+\label{sec:method}
+
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.99\linewidth]{pic/main.pdf}
+  \vspace{-8pt}
+  \caption{Our proposed model architecture. The policy takes a history of $T_o$ raw 3D point clouds $\mathcal{P}_t = (\mathbf{P}_{t-T_o+1}, \dots, \mathbf{P}_t)$ and a language instruction $L$ as input. 
+ \textit{Observation Tokenizer}: Each point cloud $\mathbf{P}_k$ in the history is processed via Farthest Point Sampling (FPS) and PointNets to extract local geometric tokens and a global scene context. The tokens from each time step are concatenated to form the final observation token sequence.
+ Language is encoded by a T5 tokenizer~\cite{2020t5}. 
+ \textit{Structural Action Tokenizer}: 
+ Guided by the manipulator’s morphology, the Embodied Joint Codebook produces structural-centric embeddings aligned with the action dimension $D_a$, which are added to the time-stepped noisy tokens $\mathbf{A}_t^\tau$.
+ \textit{Structural Action Transformer:} A
+ DiT~\cite{peebles2023scalable} with causal masking predicts the action velocity
+ field. This field is then integrated via an ODE solver to produce the final
+ action chunk $\mathbf{A}_t$.}
+  \vspace{-16pt}
+  \label{fig:main}
+\end{figure*}
+
+% We detail our approach for cross-embodiment dexterous manipulation from 3D observations. We first formulate the problem in Section 3.1. We then introduce our core model as a conditional continuous-time normalizing flow in Section 3.2, detailing its objective. Finally, we describe the network architecture in Section 3.3, focusing on our novel structural action representation and the embodied joint codebook.
+
+\subsection{Problem Formulation}
+
+We formulate the control problem for
+dexterous hands as a conditional generative modeling task. At each time step
+$t$, the policy receives an observation $o_t$ which consists of a history of the last $T_o$ raw 3D point clouds, $\mathcal{P}_t = (\mathbf{P}_{t-T_o+1}, \dots, \mathbf{P}_t)$, where each $\mathbf{P}_k \in \mathbb{R}^{N \times 3}$ ($N$ is the
+number of points), and a natural language instruction $L$. The goal is to learn a policy $\pi$ that
+predicts a chunk of future actions $\mathbf{A}_t$. 
+As motivated in our
+introduction, we challenge the conventional temporal-centric action
+representation $(T, D_a)$. Instead, we define the action chunk from a structural-centric
+perspective as $\mathbf{A}_t \in \mathbb{R}^{D_a \times T}$, where $D_a$ is the
+dimensionality of the robot's action space and $T$ is the prediction horizon.
+Each row $j_i \in \mathbb{R}^{T}$ of $\mathbf{A}_t$ represents the entire
+future trajectory for the $i$-th joint. The policy $\pi$ thus models the
+conditional distribution 
+% $p(\mathbf{A}_t | o_t) = p(\mathbf{A}_t |
+% \mathcal{P}_t, L)$. 
+$p(\mathbf{A}_t | o_t)$. 
+During closed-loop control, this action chunk $\mathbf{A}_t$
+is generated in a receding-horizon manner. A subset of the predicted actions is
+executed, and the policy is re-queried with the new observation, enabling
+continuous feedback and correction.
+
+% \vspace{-2pt}
+\subsection{Policy as a Conditional Normalizing Flow}
+% \vspace{-2pt}
+
+We model the complex, high-dimensional conditional distribution $p(\mathbf{A}_t | o_t)$ using a continuous-time normalizing flow (CNF)~\cite{lipman2022flow}. We frame this as learning a conditional velocity field $v(\mathbf{A}_t^\tau, \tau, o_t)$ that transports a standard Gaussian $\mathcal{N}(0, I)$ to the action distribution. We parameterize the velocity field with a neural network $\epsilon_\theta(\mathbf{A}_t^\tau, \tau, o_t)$, where $\tau \in [0, 1]$ is the flow time. The network is trained to minimize the following objective:
+\begingroup
+\setlength{\abovedisplayskip}{-0pt}
+\setlength{\belowdisplayskip}{2pt}
+\begin{equation}\label{eq:fm_objective}
+\resizebox{\linewidth}{!}{$
+\mathcal{L}(\theta)=\mathbb{E}_{\tau\sim\mathcal{U}(0,1),\mathbf{A}_t^0\sim\mathcal{N}(0,I),\mathbf{A}_t^1\sim\mathcal{D}}
+\left[\left\|\epsilon_\theta(\mathbf{A}_t^\tau,\tau,o_t)-(\mathbf{A}_t^1-\mathbf{A}_t^0)\right\|^2\right],
+$}
+\end{equation}
+\endgroup
+where $\mathcal{D}$ is the dataset of ground-truth action chunks, $\mathbf{A}_t^1 \sim \mathcal{D}$ is a ground-truth action, $\mathbf{A}_t^0 \sim \mathcal{N}(0,I)$ is a noise sample, and $\mathbf{A}_t^\tau = (1-\tau)\mathbf{A}_t^0 + \tau \mathbf{A}_t^1$. The conditioning observation $o_t$ is the one associated with the target action $\mathbf{A}_t^1$.
+
+At inference time, we sample a noise $\mathbf{A}_t^0 \sim \mathcal{N}(0,I)$ and generate the final action chunk $\mathbf{A}_t^1$ by solving the ordinary differential equation (ODE) $\frac{d\mathbf{A}_t^\tau}{d\tau} = \epsilon_\theta(\mathbf{A}_t^\tau, \tau, o_t)$ from $\tau=0$ to $\tau=1$. This is done with a numerical solver, such as a single Euler integration step, which recovers the probability flow in one function evaluation (1-NFE).
+
+% \vspace{-2pt}
+\subsection{Policy Network Architecture}
+% \vspace{-2pt}
+
+As shown in Figure~\ref{fig:main}, we design our velocity field model
+$\epsilon_{\theta}$ as a Transformer~\cite{vaswani2017attention} architected to
+ingest our novel structural action tokens and the multi-modal conditioning
+observation tokens. The architecture is divided into three components: an
+\textbf{Observation Tokenizer} that tokenizes the historical 3D point clouds
+and language inputs, 
+a \textbf{Structural Action Tokenizer} that embed structural priors into action tokens,
+and a \textbf{Structural Action Transformer} that predicts the
+action velocity field conditioned on the observations.
+
+\vspace{-2pt}
+\subsubsection{Observation Tokenizer}
+\vspace{-2pt}
+
+Our hierarchical point cloud tokenizer is designed to
+capture both local geometric details and the global scene context from the entire observation history $\mathcal{P}_t$. We apply a shared encoding module to each of the $T_o$ point clouds $\mathbf{P}_k \in \mathcal{P}_t$. For a given $\mathbf{P}_k$, we first use
+Farthest Point Sampling (FPS) to select $M$ local group centers $C_k = \{c_1,
+..., c_M\} \subset \mathbf{P}_k$. For each center $c_{i}$, we query its $K$
+nearest neighboring points to form a local group $\mathbf{P}_{k,i} \subset
+\mathbf{P}_k$. Each local group $\mathbf{P}_{k,i}$ is processed by a shared
+PointNet~\cite{qi2017pointnet} to extract a local geometric feature
+$f_{k,i}\in\mathbb{R}^{d_{feat}/T_o}$. The 3D coordinates of the group centers $C_k$
+are passed through an MLP to create positional embeddings
+$p_{k,i}\in\mathbb{R}^{d_{feat}/T_o}$. These are combined
+($f_{k,i}^{\prime}=f_{k,i}+p_{k,i}$) as $M$ local point tokens,
+$tok_{l,k}\in\mathbb{R}^{M\times d_{feat}/T_o}$. To leverage the
+permutation-invariant nature of these local patches, we apply a random shuffle
+to the $tok_{l,k}$ sequence during training as data augmentation. In parallel,
+to capture holistic scene understanding, we feed the entire raw point cloud
+$\mathbf{P}_k$ into a separate PointNet-based encoder~\cite{qi2017pointnet}.
+This module produces a single global token, $tok_{g,k} \in
+\mathbb{R}^{d_{feat}/T_o}$, which represents the overall scene context for that timestep. This global
+token does not receive any positional embedding.
+
+This process yields $T_o$ global tokens and $T_o$ sets of $M$ local tokens. These are concatenated to form the full point cloud history sequence: 
+\begingroup
+\setlength{\abovedisplayskip}{1pt}
+\setlength{\belowdisplayskip}{2pt}
+\begin{equation}\label{eq:hist_token}
+% \small
+\begin{aligned}
+tok&_{hist} = \text{Cat}\big(\text{Cat}(tok_{g,\,t-T_o+1},\dots,tok_{g,\,t}),\\
+&\text{Cat}(tok_{l,\,t-T_o+1},\dots,tok_{l,\,t})\big)
+\in\mathbb{R}^{(1+M)\times d_{feat}},
+\end{aligned}
+\end{equation}
+\endgroup
+where Cat means concatenation.
+The language instruction $L$ is
+tokenized and encoded using a pre-trained T5 encoder~\cite{2020t5} to produce a
+sequence of language tokens $tok_{lang}\in\mathbb{R}^{L_{lang}\times
+d_{feat}}$. The final observation tokens are formed by concatenating the
+historical tokens and the language tokens: $tok_{obs} =
+\text{Cat}(tok_{hist}, tok_{lang})$. This sequence serves
+as the conditioning prefix for the model.
+
+\vspace{-2pt}
+\subsubsection{Structural Action Tokenizer}
+\vspace{-2pt}
+
+The noisy action $\mathbf{A}_{t}^\tau
+\in\mathbb{R}^{D_{a}\times T}$ is treated as a sequence of $D_{a}$ tokens,
+where each token represents the entire temporal trajectory for a single joint.
+This high-dimensional temporal vector (dim $T$) contains significant
+redundancy. We compress it by passing each of the $D_a$ joint trajectories
+through a shared MLP, projecting it from $T$ dimensions to a lower-dimensional
+embedding $d_{feat}$ (\textit{e.g.}, from $64$ to $16$). This results in an
+embedded action sequence $tok_{act}\in \mathbb{R}^{D_{a}\times d_{feat}}$.
+
+To resolve the ambiguity between the $D_a$
+joint tokens and explicitly embed structural priors, we introduce an
+\textbf{Embodied Joint Codebook}. This codebook is derived from the
+manipulator's morphology. For any given hand, we define each joint $j$ as a
+three-part triplet $J_{j} = (e, f, r)$:
+\begin{itemize}
+   \item $e\in\mathbb{Z}$: The \textbf{Embodiment ID}, a unique identifier
+for the manipulator (\textit{e.g.}, ShadowHand, XHand).
+   \item $f\in\mathbb{Z}$: The \textbf{Functional Category}. Inspired by
+human hand anatomy, we classify joints by their functional role, such as
+Carpometacarpal (CMC), Metacarpophalangeal (MCP), Proximal Interphalangeal
+(PIP), or Distal Interphalangeal (DIP) joints.
+   \item $r\in\mathbb{Z}$: The \textbf{Rotation Axis}, describing the
+joint's primary motion, \textit{e.g.}, Flexion/Extension, Abduction/Adduction,
+or Pronation/Supination.
+\end{itemize}
+The complete mapping table covering embodiment, function category and rotation axis used in our experiments is provided in Appendix.
+Each element in the triplet $(e,f,r)$
+indexes a separate learnable embedding table. The final codebook embedding $C_{j}\in\mathbb{R}^{d_{feat}}$ for
+joint $j$, is the sum of its three component
+embeddings. This design is central to handling heterogeneity: two different
+hands (different $e$) may share the same functional joint (same $f$) and
+rotation (same $r$), resulting in similar codebook embeddings that prime the
+model for transfer learning. The final input sequence for the action
+tokens is formed by adding the codebook embeddings to the compressed action
+trajectories: $tok_{input\_act} = tok_{act} + \mathbf{E}$, where
+$\mathbf{E} \in \mathbb{R}^{D_a \times d_{feat}}$ is the matrix of codebook
+embeddings for the manipulator. 
+
+\vspace{-2pt}
+\subsubsection{Structural Action Transformer}
+\vspace{-2pt}
+
+The $tok_{input\_act}$ sequence is then
+concatenated with the observation tokens $tok_{obs}$. This combined sequence
+is fed into the DiT~\cite{peebles2023scalable}. 
+We modify the DiT's
+self-attention mask to enforce causal masking, where $tok_{obs}$ only
+attends to other observation tokens, 
+and $tok_{input\_act}$ attends to
+all observation tokens and all other action tokens. 
+The output tokens from the
+DiT corresponding to the action sequence are passed through a final MLP to produce
+the predicted action velocity field
+$\epsilon_{\theta}(\mathbf{A}_{t}^{\tau},\tau,o_{t})$.
+
+

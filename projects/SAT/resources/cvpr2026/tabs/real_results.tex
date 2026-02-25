@@ -1,0 +1,24 @@
+
+\begin{table}[t]
+\centering
+\small
+\resizebox{0.48\textwidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+  & \multicolumn{3}{c}{Success Rate} \\
+ Task Description & HPT~\cite{wang2024scaling} & 3DDP~\cite{ze20243d} & \textbf{\mymethod{} (Ours)} \\
+\midrule
+\textit{Remove the pen cap} & 0.10 & 0.25 & {\cellcolor{tablecolor2}$\mathbf{0.30}$} \\
+\textit{Hand over Baymax} & 0.50 & 0.75 & {\cellcolor{tablecolor2}$\mathbf{0.85}$} \\
+\textit{Push then grab box} & 0.05 & 0.15 & {\cellcolor{tablecolor2}$\mathbf{0.35}$} \\
+\textit{Place block in plate} & 0.60 & 0.85 & {\cellcolor{tablecolor2}$\mathbf{0.90}$} \\
+\textit{Brush the cup} & 0.10 & 0.30 & {\cellcolor{tablecolor2}$\mathbf{0.45}$} \\
+\textit{Grasp basketball} & 0.65 & 0.80 & {\cellcolor{tablecolor2}$\mathbf{0.95}$} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-8pt}
+\caption{Quantitative results on 6 real-world bimanual manipulation tasks. We compare our model against baselines using in-domain demonstrations.}
+\vspace{-16pt}
+\label{tab:real_results}
+\end{table}

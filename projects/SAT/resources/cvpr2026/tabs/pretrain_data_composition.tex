@@ -1,0 +1,24 @@
+
+\begin{table}[t]
+\centering
+\small
+\resizebox{0.45\textwidth}{!}{
+\begin{tabular}{ccc|c|c}
+\toprule
+% \multicolumn{3}{c|}{Dataset Combination} &  & \\
+Human & Robot & Simulation & Scale & Success \\
+\midrule
+\yes & \yes & \yes & 100\% & \ddbfgreen{0.71}{0.04} \\
+\yes & \no & \no & 100\% & \dd{0.68}{0.04} \\
+\no & \yes & \no & 100\% & \dd{0.66}{0.05} \\
+\no & \no & \yes & 100\% & \dd{0.70}{0.03} \\
+\yes & \yes & \yes & 10\% & \dd{0.68}{0.03} \\
+% - & - & - & - & \dd{0.63}{0.03} \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-8pt}
+\caption{Pre-training data ablation. We report the average success on simulation tasks after fine-tuning models pre-trained on different combinations of Human, Robot, and Simulation datasets.}
+\vspace{-16pt}
+\label{tab:data_scale}
+\end{table}

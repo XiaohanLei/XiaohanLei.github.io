@@ -1,0 +1,79 @@
+% CVPR 2026 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+% \usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{30923} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2026}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Structural Action Transformer for 3D Dexterous Manipulation}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+\author{
+    Xiaohan Lei$^1$ \quad
+    Min Wang$^{2,}$\thanks{Corresponding authors.} \quad
+    Bohong Weng$^1$ \quad
+    Wengang Zhou$^{1,2,*}$ \quad
+    Houqiang Li$^{1,2}$ \\[6pt]
+    % 机构信息
+    $^1$MoE Key Laboratory of Brain-inspired Intelligent Perception and Cognition, \\
+    University of Science and Technology of China \\
+    $^2$Institute of Artificial Intelligence, Hefei Comprehensive National Science Center \\[6pt]
+    % 邮箱合并部分
+    {\tt\small \{leixh, bhweng\}@mail.ustc.edu.cn} \quad
+    {\tt\small wangmin@iai.ustc.edu.cn} \quad
+    {\tt\small \{zhwg, lihq\}@ustc.edu.cn}\\[3pt]
+    % 项目地址 
+    {\small Project Page: \quad \tt\small \url{https://xiaohanlei.github.io/projects/SAT}}
+}
+
+\begin{document}
+
+\maketitle
+
+\linespread{0.965}\selectfont
+
+\input{sec/0_abstract}    
+\input{sec/1_intro}
+\input{sec/2_rel_work}
+\input{sec/3_method}
+\input{sec/4_exp}
+\input{sec/5_conclusion}
+
+\section{Acknowledgments}
+
+This work was supported by the National Natural Science Foundation of China under Contract 62472141, the Natural Science Foundation of Anhui Province under Contract 2508085Y040, and the Youth Innovation Promotion Association CAS. It was also supported by the GPU cluster built by MCC Lab of Information Science and Technology Institution, USTC and the Supercomputing Center of USTC.
+
+
+% \input{sec/X_suppl}
+
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+% WARNING: do not forget to delete the supplementary pages from your submission 
+% \input{sec/X_suppl}
+
+\end{document}

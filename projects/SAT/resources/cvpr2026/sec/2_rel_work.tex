@@ -1,0 +1,36 @@
+\vspace{-4pt}
+\section{Related Work}
+% \vspace{-2pt}
+\label{sec:related_work}
+
+% Our research is positioned at the intersection of several key areas in modern robotics: action representation for policy learning, dexterous manipulation, and the challenge of learning generalizable policies across heterogeneous embodiments. We review the most relevant literature in each domain to contextualize our contribution.
+
+\subsection{Action Representation in Policy Learning}
+
+The representation of actions is a fundamental design choice in learning-based control. While early methods in imitation learning predict a single action at each timestep~\cite{pomerleau1988alvinn, ross2011reduction}, this autoregressive approach is known to suffer from compounding errors, where small inaccuracies accumulate over long horizons, leading to significant trajectory divergence~\cite{ross2010efficient}.
+
+To mitigate this issue, a dominant paradigm in recent literature is \textbf{action chunking}, where a policy outputs a sequence of future actions at each inference step~\cite{sharma2019dynamics, zhao2023learning, chi2023diffusion}. This approach has been shown to improve temporal consistency and reduce the impact of compounding errors. For instance, Diffusion Policy~\cite{chi2023diffusion} and related diffusion-based models~\cite{janner2022planning, reuss2023goal, wen2024diffusion, hou2025dita, liu2024rdt, liu2025hybridvla} generate chunked action trajectories by iteratively denoising a random tensor, producing smooth and effective behaviors. Similarly, transformer-based models~\cite{zhao2023learning, reed2022generalist, brohan2022rt, kim2024openvla, zitkovich2023rt} predict sequences of discretized action tokens. This temporal-centric view, structuring action chunks as a sequence of feature vectors over time, $(T, D_a)$, is now standard in large-scale robotic policies.
+
+While effective, these methods treat the action vector at each timestep as a monolithic entity. This overlooks the rich kinematic structure of the robot and becomes inefficient as the action dimensionality $D_a$ grows. Our work challenges this conventional representation. Instead of viewing actions as a sequence of temporal snapshots, we propose to model them as a sequence of joint-wise trajectories, $(D_a, T)$. This reframing allows the model to learn compressed temporal primitives for each joint, and more importantly, provides a natural mechanism to handle embodiment heterogeneity.
+
+% \vspace{-2pt}
+\subsection{Dexterous Manipulation}
+% \vspace{-2pt}
+
+Dexterous robotic hands, with their high degrees of freedom, offer the potential to replicate human-level dexterity but pose significant learning challenges due to their complex dynamics and contact-rich nature \cite{bicchi2000robotic}. Early successes often relied on precise analytical models \cite{murray2017mathematical}, but recent progress has been dominated by learning-based methods.
+
+Deep reinforcement learning (RL) has been successfully used to learn complex in-hand manipulation skills from scratch in simulation \cite{andrychowicz2020learning, rajeswaran2017learning, nagabandi2020deep, luo2025precise}, though transferring these policies to the real world remains a challenge. Imitation learning from human demonstrations offers a more data-efficient alternative. This includes learning from various interfaces such as vision-based motion capture \cite{qin2023anyteleop, cheng2024open, wang2024dexcap, yang2025ace}, or glove-based controllers~\cite{zhang2025doglove, gao2025glovity, xu2025dexumi}. 
+
+Recent Vision-Language-Action (VLA) models have also been applied to this domain~\cite{yang2025egovla, wen2025dexvla, jang2025dreamgen, bjorck2025gr00t}. For example, DexGraspVLA \cite{zhong2025dexgraspvla} and DexVLG~\cite{he2025dexvlg} leverage diffusion-based or flow-based policies and large pre-trained models to achieve zero-shot grasping of novel objects. 
+However, nearly all of these methods still rely on
+the conventional $(T, D_a)$ action representation. This approach treats the action as a monolithic, fixed-dimensional vector at each timestep, which is fundamentally ill-suited for cross-embodiment transfer as it provides no natural mechanism to align or compare manipulators with different kinematic structures or joint counts.
+
+% \vspace{-2pt}
+\subsection{Heterogeneous Learning}
+% \vspace{-2pt}
+
+A central goal of modern robotics is to create ``generalist'' agents that can operate across a wide range of tasks, environments, and robot morphologies \cite{bommasani2021opportunities}. This has led to a paradigm shift towards pre-training large policies on massive, heterogeneous datasets. The Open X-Embodiment dataset \cite{o2024open} represents a landmark effort in this direction, aggregating data from dozens of different robots.
+
+Several strategies have emerged to handle the ``heterogeneity'' problem. Data-centric approaches aim to unify diverse datasets under a common data format and action representation. For instance, some methods~\cite{brohan2022rt, o2024open, kim2024openvla, pertsch2025fast, lee2024behavior, wang2025vq} discretize the action space into a shared vocabulary of tokens , while others~\cite{zitkovich2023rt, driess2023palm, zhou2025physvlm, li2024manipllm, han2024dual, team2025gemini, ji2025robobrain, nair2022r3m} leverage the power of pre-trained vision-language models (VLMs) to perform high-level reasoning, effectively treating robot control as a sequence modeling problem. This paradigm has been successfully scaled by training single, diffusion-based generalist policies on large-scale aggregated datasets~\cite{team2024octo, black2410pi0, intelligence2025pi}. Modular approaches explicitly design architectures to handle heterogeneity. A common technique is to introduce embodiment-specific ``stems'' that tokenize proprioceptive and visual inputs from different robots into a shared latent space, which is then processed by a large, pre-trained ``trunk''~\cite{wang2024scaling, zheng2025universal}
+
+While these methods have achieved impressive generalization, they either enforce a unified action space that may not be optimal for all robots, or rely on separate modules to align inputs before the core policy network. Our work introduces a fundamentally different approach. By re-structuring the action prediction problem as generating a sequence of joint trajectories, $(D_a, T)$, we leverage a core property of the Transformer architecture: its ability to operate on variable-length sequences. In our framework, a robot's embodiment is defined by the length of the sequence, $D_a$. This allows a single, unified policy to naturally handle different robots and enables the self-attention mechanism to learn functional similarities and mappings between the joints of different embodiments directly within the representation space.

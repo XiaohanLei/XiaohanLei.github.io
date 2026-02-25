@@ -1,0 +1,129 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[rebuttal]{cvpr}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+% ----------- Deep & Bold -----------
+\definecolor{boldRed}{HTML}{D50000}   % 深绯红
+\definecolor{boldGreen}{HTML}{1B5E20} % 深森林绿 (对比度极高)
+\definecolor{boldBlue}{HTML}{0D47A1}  % 深海蓝
+
+\newcommand{\textred}[1]{\textcolor{boldRed}{#1}}
+\newcommand{\textgreen}[1]{\textcolor{boldGreen}{\textbf{#1}}}
+\newcommand{\textblue}[1]{\textcolor{boldBlue}{\textbf{#1}}}
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+% If you wish to avoid re-using figure, table, and equation numbers from
+% the main paper, please uncomment the following and change the numbers
+% appropriately.
+%\setcounter{figure}{2}
+%\setcounter{table}{1}
+%\setcounter{equation}{2}
+
+% If you wish to avoid re-using reference numbers from the main paper,
+% please uncomment the following and change the counter value to the
+% number of references you have in the main paper (here, 100).
+%\makeatletter
+%\apptocmd{\thebibliography}{\global\c@NAT@ctr 100\relax}{}{}
+%\makeatother
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{30923} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2026}
+
+\begin{document}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Structural Action Transformer for 3D Dexterous Manipulation Rebuttal}  % **** Enter the paper title here
+
+\maketitle
+\thispagestyle{empty}
+\appendix
+
+\linespread{0.996}\selectfont
+%%%%%%%%% START
+
+\noindent \textgreen{Response to Reviewer JzmD}
+
+We thank the reviewer for finding our structural-centric perspective ``original'' and ``elegant.''
+
+\noindent \textblue{Q1. Non-Anthropomorphic Embodiments.} The triplet $J=(e,f,r)$ ensures technical feasibility. For non-anthropomorphic hands, unique Embodiment IDs $e$ and extended functional categories $f$ allow the network to distinguish specific control patterns. Although these cases offer fewer transfer benefits than anthropomorphic hands sharing prior $f$, the embedding $(e,f,r)$ prevents failure and ensures successful policy learning.
+
+\noindent \textblue{Q2. Tokenization Ablation (Zero-Padding).} While our primary baselines HPT and UniAct are specifically architected for heterogeneity, we add a naive Zero-Padding baseline per your suggestion. It achieves \textbf{0.62} success (vs. SAT \textbf{0.71}). This gap confirms that simple padding is suboptimal compared to our structural-centric approach, justifying our design choice over naive fixes.
+
+\noindent \textblue{Q3. Data Leakage.} Addressed in Table 3 (Row 2). Our model pre-trained \textbf{only on Human} Data achieves \textbf{0.68} success. This setting \textbf{completely avoids data leakage} by excluding all simulation data, yet still outperforms full-mixture baselines (UniAct 0.50). This proves gains stem from transferring human structural priors, not memorizing simulation dynamics.
+
+\noindent \textblue{Q4. Cross-Embodiment Transfer.} We demonstrate transfer capability through our few-shot experiments. As shown in \textbf{Fig. 4}, SAT leverages structural priors to ``warm-start'' learning on target embodiments, reducing downstream data requirements from hundreds to mere dozens of trajectories compared to baselines. 
+
+
+\noindent \textblue{Q5. Comparison with Retargeting.} We respectfully clarify the distinction: Retargeting (e.g., AnyTeleop) is primarily a motion mapping technique ($A_{human} \mathbin{\to} A_{robot}$), whereas SAT is an autonomous visuomotor policy ($O_{obs} \mathbin{\to} A_{robot}$). Since retargeting relies on expert human guidance during inference, it serves as a data generation tool rather than a directly comparable autonomous baseline.
+
+\noindent \textblue{Minor Weaknesses.} \textbf{(Trials)} We use 20 trials/task. \textbf{(Compression)} Works by capturing smooth motion primitives rather than raw steps.
+
+
+% SECOND
+
+\noindent \textgreen{Response to Reviewer RufW}
+
+We thank the reviewer for noting our scalable representation and SOTA performance with high parameter efficiency.
+
+\noindent \textblue{Q1. Action Space Completeness \& Attention.}
+We clarify that our tokens represent \textbf{Functional Motion Primitives}. Their combination constitutes the complete kinematic space for any hand. While Cross-Attention aligns observation to action, Self-Attention models \textbf{Inter-Joint Synergies}. It captures physical correlations to ensure the action chunk represents a coherent, physically consistent hand pose rather than independent joint movements.
+
+\noindent \textblue{Q2. 3D Motivation \& Noise Robustness.}
+\textbf{Motivation:} We prioritize 3D to explicitly resolve \textbf{Contact Geometry} and depth ambiguity caused by severe self-occlusion in 2D images.
+\textbf{Noise Robustness:} Our tokenizer (FPS \& k-NN grouping) acts as a geometric filter against noise. This is empirically proven by our real-world experiments (Table 6), where we achieve high success rate using a single commercial LiDAR camera with inherent sensor noise.
+
+\noindent \textblue{Q3. Scalability \& Capacity.}
+\textbf{Data Scaling:} Table 3 shows that adding diverse Human/Robot data to Simulation data improves performance, proving the model benefits from dataset growth rather than saturation.
+\textbf{Capacity:} We outperform the 255M-param 3D-DP with only \textbf{19M} params. This $>10\times$ efficiency implies significant capacity headroom; scaling the DiT backbone can readily handle more general tasks without optimization bottlenecks.
+
+\noindent \textblue{Q4. Dataset Composition \& Minor Weaknesses.}
+We employ balanced re-sampling for data mixing. Given the scale disparity (e.g., massive Human vs. limited Robot data), we upsample smaller datasets to ensure diverse embodiment learning without domain dominance. We will include mixing ratios and composition statistics in the Appendix.
+
+
+%%%%%%%%%
+
+
+
+\noindent \textgreen{Response to Reviewer LESy}
+
+We thank the reviewer for the positive assessment, specifically highlighting our ``conceptually clean'' structural-centric perspective, ``strong technical motivation,'' and ``thorough experimental validation.'' 
+
+\noindent \textblue{Q1. Comparison with FAST-style Tokenizers.} 
+We follow your suggestion to compare SAT against a FAST-style baseline. On Adroit, this baseline achieves an average success of \textbf{0.71}, lower than SAT's \textbf{0.75}. While FAST works for low-dimensional spaces, it still struggles with the high-precision coordination needed for dexterous manipulation.
+
+\noindent \textblue{Q2. Real-World Fine-Tuning Protocols.} 
+We use the model pre-trained on the full mixture as the initialization, then fine-tune on 20 teleoperated in-domain demonstrations per real-world task. Hyperparameters and procedures will be detailed in the final Appendix.
+
+\noindent \textblue{Q3. Real-World Evaluation Protocols.} 
+We run 20 trials per task, manually resetting objects to random poses. Success requires meeting goals within 400 steps without violations. Exact geometric success thresholds for each task will be detailed in the camera-ready.
+
+
+\noindent \textblue{Minor: Unordered Tokens \& Causality.} 
+We clarify that the ``unordered'' property applies to the spatial dimension ($D_a$). The Transformer treats these as a set, allowing permutation equivariance across different embodiments. Temporal causality is strictly enforced in the observation encoder. The action generation itself is chunked, predicting the full trajectory $T$ for all joints simultaneously based on the causal observation context.
+
+
+
+%%%%%%%%% REFERENCES
+% {
+%     \small
+%     \bibliographystyle{ieeenat_fullname}
+%     \bibliography{main}
+% }
+
+\end{document}
